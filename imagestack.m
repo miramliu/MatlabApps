@@ -1,4 +1,4 @@
-%% Basic Image viewer started by Mira July 2019
+%% Basic Image viewer rewritten by Mira November 2021 (from July 2019)
 %  current functions: include 'permute' as input if the stack is of
 % the form [slice, x,y]. if it is of the form [x,y,slice] 'permute' is not
 % needed. 
@@ -34,6 +34,7 @@ classdef imagestack < matlab.apps.AppBase
         Ss
         dcm
         MaxValue
+        MinValue
     end
     
 
@@ -51,8 +52,6 @@ classdef imagestack < matlab.apps.AppBase
                     if strcmp(string(varargin{2}),'permute')
                         app.InputImage = permute(varargin{1},[2 3 1]); %if it is given as [slice,x,y]
                     else
-                        %name = varargin{2}(82:end-4);
-                        %name=strrep(name,'_','-');
                         name = varargin{2};
                     end
                 end
@@ -66,10 +65,11 @@ classdef imagestack < matlab.apps.AppBase
             
 
             % make datacursor usable
-            datacursormode(app.UIFigure, 'on')
-            app.dcm = datacursormode(app.UIFigure);
+            %datacursormode(app.UIFigure, 'on')
+            %app.dcm = datacursormode(app.UIFigure);
 
             app.MaxValue = max(app.InputImage(:,:,round(app.Ss/2)),[],'all');
+            app.MinValue = 0.0; %set to 0
 
             colormapname = 'jet'; %set colormap
             data = app.InputImage(:,:,round(app.Ss/2));
@@ -88,7 +88,7 @@ classdef imagestack < matlab.apps.AppBase
         function SliceValueChanged(app, event)
             colormapname = 'jet'; %set colormap
             data = app.InputImage(:,:,round(double(app.Slice.Value)));
-            imshow(data,[double(app.MinColor.Value) double(app.MaxColor.Value)],'parent',app.UIAxes)
+            imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
             colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
             app.SliceSliderLabel.Text = string('Slice ' + string(round(double(app.Slice.Value))));
         end
@@ -101,7 +101,7 @@ classdef imagestack < matlab.apps.AppBase
                     app.Slice.Value = round(app.Slice.Value) - 1;
                     app.SliceSliderLabel.Text = ['Slice' ' ' num2str(round(app.Slice.Value))];
                     data = app.InputImage(:,:,round(double(app.Slice.Value)));
-                    imshow(data,[double(app.MinColor.Value) double(app.MaxColor.Value)],'parent',app.UIAxes)
+                    imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                     colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
                 end
             end
@@ -110,20 +110,20 @@ classdef imagestack < matlab.apps.AppBase
                     app.Slice.Value = round(app.Slice.Value) + 1;
                     app.SliceSliderLabel.Text = ['Slice' ' ' num2str(round(app.Slice.Value))];
                     data = app.InputImage(:,:,round(double(app.Slice.Value)));
-                    imshow(data,[double(app.MinColor.Value) double(app.MaxColor.Value)],'parent',app.UIAxes)
+                    imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                     colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
                 end
             end
             if strcmp(event.Key,'v') % vertical flip (over horizontal axis)
                 app.InputImage = flip(app.InputImage,1);
                 data = app.InputImage(:,:,round(double(app.Slice.Value)));
-                imshow(data,[double(app.MinColor.Value) double(app.MaxColor.Value)],'parent',app.UIAxes)
+                imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                 colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
             end
             if strcmp(event.Key, 'h')
                 app.InputImage = flip(app.InputImage,2); % horizontal flip (over vertical axis)
                 data = app.InputImage(:,:,round(double(app.Slice.Value)));
-                imshow(data,[double(app.MinColor.Value) double(app.MaxColor.Value)],'parent',app.UIAxes)
+                imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                 colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
             end
             
@@ -158,7 +158,9 @@ classdef imagestack < matlab.apps.AppBase
                 B = reshape(varargin{1},[1,nx,nx]); %assuming it's a square image...
                 app.InputImage=permute(B,[2 3 1]);
             end
+
             app.MaxValue = max(app.InputImage(:,:,round(app.Ss/2)),[],'all');
+            app.MinValue = 0;
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
@@ -177,8 +179,8 @@ classdef imagestack < matlab.apps.AppBase
             app.Slider = uislider(app.UIFigure);
             app.Slider.Orientation = 'vertical';
             app.Slider.Position = [18 57 3 446];
-            app.Slider.Limits = [0 app.MaxValue/4];
-            app.Slider.Value= 250; %just standard fDstar
+            app.Slider.Limits = [0 app.MaxValue/4]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
+            app.Slider.Value= 250; %just standard max for perfusion MRI
             app.Slider.ValueChangedFcn = createCallbackFcn(app, @SliderColorValueChanged, true);
 
             % Create Slice
@@ -200,13 +202,14 @@ classdef imagestack < matlab.apps.AppBase
                 
 
             % Create SliceSliderLabel
+            
             if app.Ss>1
                 app.SliceSliderLabel = uilabel(app.UIFigure);
                 app.SliceSliderLabel.HorizontalAlignment = 'right';
-                app.SliceSliderLabel.Position = [158 28 31 22];
+                app.SliceSliderLabel.Position = [69 18 95 22];
                 app.SliceSliderLabel.Text = ['Slice' ' ' num2str(round(app.Slice.Value))];
             end
-
+            
             
         end
     end
