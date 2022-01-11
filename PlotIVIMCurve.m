@@ -1,10 +1,10 @@
-%% simple app to show an and be able to chose a voxel in the image and show the corresponding IVIM curve as a function of b.
-%input f, D, D*, the folder to the sorted dcm files, the slice of interest.
-%displays a slider to choose range of values of reference image, the reference image, and then the curve on the left
-%starts with 100,100, but after that should live update location of cursor. 
+%% simple app to show and and be able to chose a voxel in the image and show the corresponding IVIM curve as a function of b.
+%input the variables f, D, D*, the folder to the sorted dcm files, the slice of interest.
+%displays a slider to choose range of values of reference image, the reference image (102270fD*) on the left the scatter plot of the values with the diffusion and total tri-exponential fit on the right. Also the values of f, D, D*, qCBF (102270fD*) and the residual should appear on the left plot.
+%starts with the center pixel but after that should live update location of cursor which will then show the plot and fit when you click the button on the bottom left.
 %runs on Matlab 2021b
 % an example command line input is "PlotIVIMCurve(f,D,Dstar,'/Users/neuroimaging/Desktop/DATA/IVIM_Pulsatility/2021_12_21_IVIM_TIM/DICOM_sorted',24)"
-%11/3/21 Mira Liu
+%1/11/22 Mira Liu
 
 classdef PlotIVIMCurve < matlab.apps.AppBase
 
