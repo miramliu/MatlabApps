@@ -36,6 +36,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
         D
         Dstar
         slice
+        FitBvalues
     end
 
     % Callbacks that handle component events
@@ -67,7 +68,8 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
                 app.MaxValue = max(app.InputImage,[],'all');
                 app.Num_Bvalues = 10;
                 app.Bvalues  = [0 111 222 333 444 556 667 778 889 1000];
-
+                app.FitBvalues = linspace(0,1000); %b values for smooth fit of f and D and Dstar, 100 points from 0 to 1000 evenly spaces
+                
                 Image_Directory=varargin{4}; %the last variable input
                 dat_list = dir(fullfile(Image_Directory,'IM*'));
                 datnames = {dat_list.name}; %read them in the correct order
@@ -141,13 +143,13 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             %if there are also all fit variables, plot the fit on top of the signal
             if app.FitVariableLength == 5
                 %plot Diffusion regime
-                Dfit = (1-app.f(round(nx/2),round(ny/2)))*exp(-app.Bvalues*app.D(round(nx/2),round(ny/2))); 
-                plot(app.Bvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
+                Dfit = (1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2))); 
+                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
                 hold (app.UIAxes2, 'on');
 
                 %plot perfusion regime
-                CBFfit = (app.f(round(nx/2),round(ny/2)))*exp(-app.Bvalues*app.Dstar(round(nx/2),round(ny/2)))+(1-app.f(round(nx/2),round(ny/2)))*exp(-app.Bvalues*app.D(round(nx/2),round(ny/2)));
-                plot(app.Bvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)
+                CBFfit = (app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.Dstar(round(nx/2),round(ny/2)))+(1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2)));
+                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)
 
             end
             hold (app.UIAxes2, 'off');
@@ -187,18 +189,19 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             if app.FitVariableLength == 5
 
                 %plot Diffusion regime
-                Dfit = (1-app.f(x,y))*exp(-app.Bvalues*app.D(x,y)); 
-                plot(app.Bvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
+                Dfit = (1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y)); 
+                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
                 hold (app.UIAxes2, 'on');
 
                 %plot perfusion regime
-                CBFfit = (app.f(x,y))*exp(-app.Bvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.Bvalues*app.D(x,y));
-                plot(app.Bvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)   
+                CBFfit = (app.f(x,y))*exp(-app.FitBvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y));
+                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)   
                 hold(app.UIAxes2,'on');
 
                 %display the residual 
                 IVIM = app.Signal/app.Signal(1);
-                Residual =  sum(sqrt(abs(IVIM'-CBFfit)));
+                CBFfit_ErrCalc = (app.f(x,y))*exp(-app.Bvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.Bvalues*app.D(x,y)); %to get error calculation of the full bi-exponential fit
+                Residual =  sum(sqrt(abs(IVIM'-CBFfit_ErrCalc)));
                 text(600,.95,strcat("Residual = ", num2str(Residual,3)),'parent',app.UIAxes2)
                 text(600,.92,strcat("f = ", num2str(app.f(x,y),3)),'parent',app.UIAxes2)
                 text(600,.89,strcat("Dstar = ", num2str(app.Dstar(x,y),2)),'parent',app.UIAxes2)
