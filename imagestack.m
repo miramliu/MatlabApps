@@ -26,15 +26,12 @@ classdef imagestack < matlab.apps.AppBase
         Slice              matlab.ui.control.Slider
         UIAxes             matlab.ui.control.UIAxes
         Slider            matlab.ui.control.Slider %added to replace the textbok and make it a slider
-    end
-
-    
-    properties (Access = private)
         InputImage % Input stack of images
         Ss
         dcm
         MaxValue
         MinValue
+        color
     end
     
 
@@ -67,11 +64,12 @@ classdef imagestack < matlab.apps.AppBase
             % make datacursor usable
             %datacursormode(app.UIFigure, 'on')
             %app.dcm = datacursormode(app.UIFigure);
+            app.color = 'gray';
 
-            app.MaxValue = max(app.InputImage(:,:,round(app.Ss/2)),[],'all');
+            app.MaxValue = max(app.InputImage,[],'all'); %set range across ALL slices
             app.MinValue = 0.0; %set to 0
 
-            colormapname = 'jet'; %set colormap
+            colormapname = app.color; %set colormap
             data = app.InputImage(:,:,round(app.Ss/2));
             app.UIAxes.reset
             imshow(data,[],'parent',app.UIAxes)
@@ -86,15 +84,16 @@ classdef imagestack < matlab.apps.AppBase
 
         % Value changed function: Slice
         function SliceValueChanged(app, event)
-            colormapname = 'jet'; %set colormap
+            colormapname = app.color; %set colormap
             data = app.InputImage(:,:,round(double(app.Slice.Value)));
             imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
             colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
             app.SliceSliderLabel.Text = string('Slice ' + string(round(double(app.Slice.Value))));
+            %app.MaxValue = max(app.InputImage(:,:,round(app.Slice.Value)),[],'all'); %update range
         end
 
         function SliceValueChangedKey(app,event)
-            colormapname = 'jet'; %set colormap
+            colormapname = app.color; %set colormap
             %colormapname = 'gray'; %set colormap
             if strcmp(event.Key, 'leftarrow')
                 if round(app.Slice.Value)~= 1
@@ -103,6 +102,7 @@ classdef imagestack < matlab.apps.AppBase
                     data = app.InputImage(:,:,round(double(app.Slice.Value)));
                     imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                     colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
+                    %app.MaxValue = max(app.InputImage(:,:,round(app.Slice.Value)),[],'all'); %update range
                 end
             end
             if strcmp(event.Key, 'rightarrow')
@@ -112,6 +112,7 @@ classdef imagestack < matlab.apps.AppBase
                     data = app.InputImage(:,:,round(double(app.Slice.Value)));
                     imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                     colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
+                    %app.MaxValue = max(app.InputImage(:,:,round(app.Slice.Value)),[],'all'); %update range
                 end
             end
             if strcmp(event.Key,'v') % vertical flip (over horizontal axis)
@@ -119,12 +120,14 @@ classdef imagestack < matlab.apps.AppBase
                 data = app.InputImage(:,:,round(double(app.Slice.Value)));
                 imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                 colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
+                %app.MaxValue = max(app.InputImage(:,:,round(app.Slice.Value)),[],'all'); %update range
             end
             if strcmp(event.Key, 'h')
                 app.InputImage = flip(app.InputImage,2); % horizontal flip (over vertical axis)
                 data = app.InputImage(:,:,round(double(app.Slice.Value)));
                 imshow(data,[double(app.MinValue) double(app.Slider.Value)],'parent',app.UIAxes)
                 colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
+                %app.MaxValue = max(app.InputImage(:,:,round(app.Slice.Value)),[],'all'); %update range
             end
             
         end
@@ -159,7 +162,7 @@ classdef imagestack < matlab.apps.AppBase
                 app.InputImage=permute(B,[2 3 1]);
             end
 
-            app.MaxValue = max(app.InputImage(:,:,round(app.Ss/2)),[],'all');
+            app.MaxValue = max(app.InputImage,[],'all');
             app.MinValue = 0;
 
             % Create UIFigure and hide until all components are created
@@ -179,8 +182,8 @@ classdef imagestack < matlab.apps.AppBase
             app.Slider = uislider(app.UIFigure);
             app.Slider.Orientation = 'vertical';
             app.Slider.Position = [18 57 3 446];
-            app.Slider.Limits = [0 app.MaxValue/4]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
-            app.Slider.Value= 250; %just standard max for perfusion MRI
+            app.Slider.Limits = [0 app.MaxValue]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
+            app.Slider.Value= app.MaxValue;%250; %just standard max for perfusion MRI
             app.Slider.ValueChangedFcn = createCallbackFcn(app, @SliderColorValueChanged, true);
 
             % Create Slice
