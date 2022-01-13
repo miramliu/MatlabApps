@@ -15,15 +15,11 @@ function [] = dicomSortBeast_slow(varargin)
 
 
 warning('off','all')
-if nargin == 0
-    [foldName] = uigetdir('D:\_DATA\NIHR01-2015','Select Dicom Directory');
-elseif nargin == 1
-    foldName = varargin{1,1};
-end
+foldName = varargin{1,1}; %input folder path to dicom directory. e.g. ('/Users/neuroimaging/Desktop/DICOM'
 oldFold = cd(foldName);
 cd ..
 preDICOM = pwd;
-DICOM = sprintf('%s\\DICOM',preDICOM);
+DICOM = sprintf('%s//DICOM',preDICOM);
 [status, msg, msgID] = mkdir('DICOM_sorted');
 cd('DICOM_sorted')
 SORTED = pwd;
@@ -34,7 +30,7 @@ fprintf('Sorting in progress\n')
 
 %Do all of the loose files first
 for i = 3:length(dirInfo) %first 2 are '.' and '..'
-    filePath = sprintf('%s\\%s', foldName, dirInfo(i).name);
+    filePath = sprintf('%s//%s', foldName, dirInfo(i).name);
     if isdir(filePath) == 0 && strncmp(dirInfo(i).name, 'IM_',3) == 1
         %if filePath is not a folder && it contains the IM in name
         try
@@ -53,8 +49,8 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                 else
                     newFolderName = sprintf('Scan %i %s', scanNumber, scanType);
                 end
-                if length(strfind(newFolderName, '\')) > 0
-                    ind = strfind(newFolderName, '\');
+                if length(strfind(newFolderName, '/')) > 0
+                    ind = strfind(newFolderName, '/');
                     newFolderName(ind) = '_';
                 elseif length(strfind(newFolderName, '/')) > 0
                     ind = strfind(newFolderName, '/');
@@ -81,7 +77,7 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
             end
             newFileNameNum = sprintf('%s%s.dcm', fileName, numFilesStr);
             %fprintf('Copying %s\n', filePath)
-            %fprintf('Writing to %s\\%s\\%s\n', SORTED, newFolderName, newFileNameNum)
+            %fprintf('Writing to %s//%s//%s\n', SORTED, newFolderName, newFileNameNum)
             copyfile(filePath, newFileNameNum);
             scanTypePrev = scanType;
         catch ME
@@ -93,11 +89,11 @@ end
 
 %if this is the folder
 for i = 3:length(dirInfo) %first 2 are '.' and '..'
-    filePath = sprintf('%s\\%s', foldName, dirInfo(i).name);
+    filePath = sprintf('%s//%s', foldName, dirInfo(i).name);
     if isdir(filePath) == 1
         newDirInfo = dir(filePath);
         for j = 3:length(newDirInfo)
-            dicomFilePath = sprintf('%s\\%s',filePath, newDirInfo(j).name);
+            dicomFilePath = sprintf('%s//%s',filePath, newDirInfo(j).name);
             if strncmp(newDirInfo(j).name, 'IM_',3) == 1
                 try
                     scanInfo = dicominfo(dicomFilePath);
@@ -110,7 +106,7 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                     if strncmp(newDirInfo(j).name, 'IM_',3) == 1
                         if strcmp(newDirInfo(j).name, 'IM_00001') == 1
                             if strcmp(scanType, scanTypePrev) == 1
-                                toGo = sprintf('%s\\%s', SORTED, newFolderName);
+                                toGo = sprintf('%s//%s', SORTED, newFolderName);
                                 cd(toGo)
                             else
                                 count = count + 1;
@@ -120,8 +116,8 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                                     newFolderName = sprintf('Scan %i %s', scanNumber, newScanType);
                                 end
                                 cd(SORTED)
-                                if length(strfind(newFolderName, '\')) > 0
-                                    ind = strfind(newFolderName, '\');
+                                if length(strfind(newFolderName, '/')) > 0
+                                    ind = strfind(newFolderName, '/');
                                     newFolderName(ind) = '_';
                                 elseif length(strfind(newFolderName, '/')) > 0
                                     ind = strfind(newFolderName, '/');
@@ -142,8 +138,8 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                                 else
                                     newFolderName = sprintf('Scan %i %s', scanNumber, scanType);
                                 end
-                                if length(strfind(newFolderName, '\')) > 0
-                                    ind = strfind(newFolderName, '\');
+                                if length(strfind(newFolderName, '/')) > 0
+                                    ind = strfind(newFolderName, '/');
                                     newFolderName(ind) = '_';
                                 elseif length(strfind(newFolderName, '/')) > 0
                                     ind = strfind(newFolderName, '/');
@@ -169,12 +165,12 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                             fileName = 'IM_00';
                         elseif (length(numFilesStr) == 4 && length(strfind(scanType, 'CVR')) == 1 )|| (length(numFilesStr) == 3 && length(strfind(scanType, 'CVR')) == 0)
                             fileName = 'IM_0';
-                        elseif (length(numFilesStr) == 5& length(strfind(scanType, 'CVR')) == 1 )|| (length(numFilesStr) == 4 && length(strfind(scanType, 'CVR')) == 0)
+                        elseif (length(numFilesStr) == 5 && length(strfind(scanType, 'CVR')) == 1 )|| (length(numFilesStr) == 4 && length(strfind(scanType, 'CVR')) == 0)
                             fileName = 'IM_';
                         end
                         newFileNameNum = sprintf('%s%s.dcm', fileName, numFilesStr);
                         %fprintf('Copying %s\n', dicomFilePath)
-                        %fprintf('Writing to %s\\%s\\%s\n', SORTED, newFolderName, newFileNameNum)
+                        %fprintf('Writing to %s//%s//%s\n', SORTED, newFolderName, newFileNameNum)
                         copyfile(dicomFilePath, newFileNameNum);
                         scanTypePrev = scanType;
                     end
