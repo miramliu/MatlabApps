@@ -1,4 +1,4 @@
-function [] = dicomSortBeast_slow(varargin)
+function [] = DicomSort(varargin)
 %Function to sort dicoms into new folders based on sequence
 %This version uses dicominfo on every scan. it makes it slow, but reduces
 %error that can be found when sorting specifically processed images (WIP)
