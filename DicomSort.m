@@ -6,10 +6,7 @@ function [] = DicomSort(varargin)
 %Outputs: none, creates DICOM_sorted folder in DICOM
 %-------------------------------------------------------------------------
 %
-%Created by Adam Hasse
-%University of Chicago GPMP
-%Updated 12 Jun 2018
-
+%Created by AH
 %edited by Mira Liu, 1/13/22 for Mac.
 
 
