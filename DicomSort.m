@@ -49,9 +49,6 @@ for i = 3:length(dirInfo) %first 2 are '.' and '..'
                 if length(strfind(newFolderName, '/')) > 0
                     ind = strfind(newFolderName, '/');
                     newFolderName(ind) = '_';
-                elseif length(strfind(newFolderName, '/')) > 0
-                    ind = strfind(newFolderName, '/');
-                    newFolderName(ind) = '_';
                 elseif length(strfind(newFolderName, '*')) > 0
                     ind = strfind(newFolderName, '*');
                     newFolderName(ind) = '_';
