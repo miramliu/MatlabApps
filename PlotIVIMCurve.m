@@ -299,7 +299,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             % Create UIAxes2 (Data Fit plot)
             app.UIAxes2 = uiaxes(app.RightPanel);
             %title(app.UIAxes2, 'Title')
-            %xlabel(app.UIAxes2, 'X')
+            xlabel(app.UIAxes2, 'b-value (s/mm^2)')
             %ylabel(app.UIAxes2, 'Y')
             %zlabel(app.UIAxes2, 'Z')
             app.UIAxes2.YLim = [0 1];
