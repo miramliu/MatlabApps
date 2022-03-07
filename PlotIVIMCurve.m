@@ -136,20 +136,26 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
 
             %now plot the first IVIM Curve (set arbitrarily to the center).
             app.Signal= double(app.ImageStack(1:app.Num_Bvalues,round(nx/2),round(ny/2)));
-            scatter(app.Bvalues,app.Signal/app.Signal(1),'parent',app.UIAxes2,markerfacecolor='black') %normalized to b0 (like IVIM fit algorithm)
+            sz = 70;
+            scatter(app.Bvalues,app.Signal/app.Signal(1),sz,'parent',app.UIAxes2,markerfacecolor='black') %normalized to b0 (like IVIM fit algorithm)
             title('IVIM Curve','parent',app.UIAxes2)
             hold (app.UIAxes2, 'on');
             
             %if there are also all fit variables, plot the fit on top of the signal
             if app.FitVariableLength == 5
-                %plot Diffusion regime
-                Dfit = (1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2))); 
-                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
-                hold (app.UIAxes2, 'on');
-
+              
                 %plot perfusion regime
                 CBFfit = (app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.Dstar(round(nx/2),round(ny/2)))+(1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2)));
-                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)
+                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2,'LineWidth',3.0)
+                hold (app.UIAxes2, 'on');
+
+                %plot Diffusion regime
+                Dfit = (1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2))); 
+                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2,'LineWidth',3.0)
+                hold (app.UIAxes2, 'on');
+
+                %plot data back on top
+                scatter(app.Bvalues,app.Signal/app.Signal(1),sz,'parent',app.UIAxes2,markerfacecolor='black') %normalized to b0 (like IVIM fit algorithm)
 
             end
             hold (app.UIAxes2, 'off');
@@ -181,22 +187,26 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
 
             %make the signal curve from the voxel at those coordinates, using the movement of the mouse.
             app.Signal= double(app.ImageStack(1:app.Num_Bvalues,x,y));
-            scatter(app.Bvalues,app.Signal/app.Signal(1),'parent',app.UIAxes2, markerfacecolor = 'black')
+            sz = 70;
+            scatter(app.Bvalues,app.Signal/app.Signal(1),sz,'parent',app.UIAxes2, markerfacecolor = 'black')
             titlename=strcat("IVIM Curve: [" ,num2str(x), '-',num2str(y), "]");
             title(titlename,'parent',app.UIAxes2)
             hold (app.UIAxes2, 'on');
             %if there are also all fit variables, plot the fit on top of the signal
             if app.FitVariableLength == 5
 
-                %plot Diffusion regime
-                Dfit = (1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y)); 
-                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2)
-                hold (app.UIAxes2, 'on');
-
                 %plot perfusion regime
                 CBFfit = (app.f(x,y))*exp(-app.FitBvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y));
-                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2)   
+                plot(app.FitBvalues,CBFfit,'color', [0.6350 0.0780 0.1840],'parent',app.UIAxes2,'LineWidth',3.0)   
                 hold(app.UIAxes2,'on');
+
+                %plot Diffusion regime
+                Dfit = (1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y)); 
+                plot(app.FitBvalues,Dfit,'color',[0 0.4470 0.7410],'parent',app.UIAxes2,'LineWidth',3.0)
+                hold (app.UIAxes2, 'on');
+
+                %plot data back on top
+                scatter(app.Bvalues,app.Signal/app.Signal(1),sz,'parent',app.UIAxes2, markerfacecolor = 'black')
 
                 %display the residual 
                 IVIM = app.Signal/app.Signal(1);
@@ -206,7 +216,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
                 text(600,.92,strcat("f = ", num2str(app.f(x,y),3)),'parent',app.UIAxes2)
                 text(600,.89,strcat("Dstar = ", num2str(app.Dstar(x,y),2)),'parent',app.UIAxes2)
                 text(600,.86,strcat("D = ", num2str(app.D(x,y),3)),'parent',app.UIAxes2)
-                text(600,.80,strcat("qCBF = ", num2str(app.f(x,y).*app.Dstar(x,y).*102270,3)),'parent',app.UIAxes2)
+                text(600,.80,strcat("qCBF = ", num2str(app.f(x,y).*app.Dstar(x,y).*102270,3)),'parent',app.UIAxes2,'LineWidth',3.0)
 
             end
 
@@ -299,7 +309,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             % Create UIAxes2 (Data Fit plot)
             app.UIAxes2 = uiaxes(app.RightPanel);
             %title(app.UIAxes2, 'Title')
-            xlabel(app.UIAxes2, 'b-value (s/mm^2)')
+            xlabel(app.UIAxes2, 'b-value (s/mm^2)',FontSize=25)
             %ylabel(app.UIAxes2, 'Y')
             %zlabel(app.UIAxes2, 'Z')
             app.UIAxes2.YLim = [0 1];
