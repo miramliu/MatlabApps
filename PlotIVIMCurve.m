@@ -126,7 +126,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             if app.FitVariableLength == 4
                 Image_Directory=varargin{4}; %the last variable input
             elseif app.FitVariableLength == 2
-                Image_Directory = varargin{2}
+                Image_Directory = varargin{2};
             end
             dat_list = dir(fullfile(Image_Directory,'IM*'));
             datnames = {dat_list.name}; %read them in the correct order
@@ -221,7 +221,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             title(titlename,'parent',app.UIAxes2)
             hold (app.UIAxes2, 'on');
             %if there are also all fit variables, plot the fit on top of the signal
-            if app.FitVariableLength == 5
+            if app.FitVariableLength == 5 || app.FitVariableLength == 3
 
                 %plot perfusion regime
                 CBFfit = (app.f(x,y))*exp(-app.FitBvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.FitBvalues*app.D(x,y));
