@@ -48,8 +48,32 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             if isempty(varargin)
                 error('No input image')
             elseif length(varargin)==3
-                app.FitVariableLength = 2;
-                error('still in progress, please put in f, D, and D*')
+                app.FitVariableLength = 3;
+                %this would be for 1 matlab file (SCan Name_2step.mat) which has f, Dstar, and D, 1 folder, and 1 slice
+                % get variables and images of each variable
+                load(varargin{1}, 'f', 'D', 'Dstar')
+                app.slice = varargin{3};
+                app.f = squeeze(f(app.slice,:,:)); %get the slice of interest for f, D, and Dstar
+                app.D = squeeze(D(app.slice,:,:));
+                app.Dstar = squeeze(Dstar(app.slice,:,:));
+
+                %get IVIM qCBF image of that slice of interest
+                app.InputImage = squeeze(app.f.*app.Dstar).*102270; %quantitative scale factor with IVIM, to get qCBF image
+                app.MaxValue = max(app.InputImage,[],'all');
+                app.Num_Bvalues = 10;
+                app.Bvalues  = [0 111 222 333 444 556 667 778 889 1000];
+                app.FitBvalues = linspace(0,1000); %b values for smooth fit of f and D and Dstar, 100 points from 0 to 1000 evenly spaces
+                
+                Image_Directory=varargin{2}; %the path to the directory
+                dat_list = dir(fullfile(Image_Directory,'IM*'));
+                datnames = {dat_list.name}; %read them in the correct order
+                datnames = natsortfiles(datnames);
+                fname  = fullfile(Image_Directory,dat_list(1).name); %get size of first dicom for reference.
+                header = dicominfo(fname);
+                nx = header.Height;
+                ny = header.Width;
+                Images_Per_Slice = 37;
+                Start_Index = 28;
             elseif length(varargin)==4
                 %this would be for one matlab file (f,D*,D) and then 2 directories for 0-300 and 0-1000 and slice number respectively
                 app.FitVariableLength = 3;
@@ -99,40 +123,44 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             app.dcm = datacursormode(app.UIFigure);
 
             % get data for b value curve
+            if app.FitVariableLength == 4
                 Image_Directory=varargin{4}; %the last variable input
-                dat_list = dir(fullfile(Image_Directory,'IM*'));
-                datnames = {dat_list.name}; %read them in the correct order
-                datnames = natsortfiles(datnames);
-                fname  = fullfile(Image_Directory,dat_list(1).name); %get size of first dicom for reference.
-                header = dicominfo(fname);
-                nx = header.Height;
-                ny = header.Width;
-                Images_Per_Slice = 37;
-                Start_Index = 28;
+            elseif app.FitVariableLength == 2
+                Image_Directory = varargin{2}
+            end
+            dat_list = dir(fullfile(Image_Directory,'IM*'));
+            datnames = {dat_list.name}; %read them in the correct order
+            datnames = natsortfiles(datnames);
+            fname  = fullfile(Image_Directory,dat_list(1).name); %get size of first dicom for reference.
+            header = dicominfo(fname);
+            nx = header.Height;
+            ny = header.Width;
+            Images_Per_Slice = 37;
+            Start_Index = 28;
 
             % set up the image of the slice of interest across all b-values (i.e. Images_T from Reconstruction.mat)
-                i1 = Images_Per_Slice*(app.slice-1)+Start_Index; %37*(1-1)+28 = 28, get starting index
-                i2 = i1 + app.Num_Bvalues-1; %get end index
-                app.ImageStack = zeros(app.Num_Bvalues,nx,ny); %because this is one slice, it's a stack [slice, nx,ny] matching the variable images (f, D, etc)
-                
-                jj = 1; %which b value
-                %assuming Zfilter = 1
-                w2 = 0.20; 
-                w1 = 0.20; 
-                w0 = 0.20; 
-                for i= i1:i2
-                    fname_im2 = fullfile(Image_Directory,char(datnames(i-2*(Images_Per_Slice))));
-                    fname_im1 = fullfile(Image_Directory,char(datnames(i-1*(Images_Per_Slice))));
-                    fname_im0 = fullfile(Image_Directory,char(datnames(i-0*(Images_Per_Slice)))); % center slice
-                    fname_ip1 = fullfile(Image_Directory,char(datnames(i+1*(Images_Per_Slice))));
-                    fname_ip2 = fullfile(Image_Directory,char(datnames(i+2*(Images_Per_Slice))));
-                    app.ImageStack(jj,:,:)= w2*double(dicomread(fname_im2)) +           ...   
-                                    w1*double(dicomread(fname_im1)) +           ... 
-                                    w0*double(dicomread(fname_im0)) +           ... 
-                                    w1*double(dicomread(fname_ip1)) +           ... 
-                                    w2*double(dicomread(fname_ip2));
-                    jj= jj+1;
-                end
+            i1 = Images_Per_Slice*(app.slice-1)+Start_Index; %37*(1-1)+28 = 28, get starting index
+            i2 = i1 + app.Num_Bvalues-1; %get end index
+            app.ImageStack = zeros(app.Num_Bvalues,nx,ny); %because this is one slice, it's a stack [slice, nx,ny] matching the variable images (f, D, etc)
+            
+            jj = 1; %which b value
+            %assuming Zfilter = 1
+            w2 = 0.20; 
+            w1 = 0.20; 
+            w0 = 0.20; 
+            for i= i1:i2
+                fname_im2 = fullfile(Image_Directory,char(datnames(i-2*(Images_Per_Slice))));
+                fname_im1 = fullfile(Image_Directory,char(datnames(i-1*(Images_Per_Slice))));
+                fname_im0 = fullfile(Image_Directory,char(datnames(i-0*(Images_Per_Slice)))); % center slice
+                fname_ip1 = fullfile(Image_Directory,char(datnames(i+1*(Images_Per_Slice))));
+                fname_ip2 = fullfile(Image_Directory,char(datnames(i+2*(Images_Per_Slice))));
+                app.ImageStack(jj,:,:)= w2*double(dicomread(fname_im2)) +           ...   
+                                w1*double(dicomread(fname_im1)) +           ... 
+                                w0*double(dicomread(fname_im0)) +           ... 
+                                w1*double(dicomread(fname_ip1)) +           ... 
+                                w2*double(dicomread(fname_ip2));
+                jj= jj+1;
+            end
 
             %now plot the first IVIM Curve (set arbitrarily to the center).
             app.Signal= double(app.ImageStack(1:app.Num_Bvalues,round(nx/2),round(ny/2)));
@@ -142,7 +170,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             hold (app.UIAxes2, 'on');
             
             %if there are also all fit variables, plot the fit on top of the signal
-            if app.FitVariableLength == 5
+            if app.FitVariableLength == 5 || app.FitVariableLength == 3
               
                 %plot perfusion regime
                 CBFfit = (app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.Dstar(round(nx/2),round(ny/2)))+(1-app.f(round(nx/2),round(ny/2)))*exp(-app.FitBvalues*app.D(round(nx/2),round(ny/2)));
