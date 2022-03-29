@@ -316,7 +316,7 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
             % Create Slider
             app.Slider = uislider(app.LeftPanel);
             app.Slider.Orientation = 'vertical';
-            app.Slider.Limits = [0 app.MaxValue];
+            app.Slider.Limits = [0 250]; %changed to 250 because was being weird if it was app.MaxValue
             app.Slider.Value= app.MaxValue/2; %just standard fDstar
             app.Slider.Position = [16 59 3 392];
             app.Slider.MinorTicks = [];
