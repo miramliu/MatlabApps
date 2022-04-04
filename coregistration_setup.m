@@ -56,13 +56,8 @@ classdef coregistration_setup < matlab.apps.AppBase
     methods (Access = private)
         %% startup function
         function startupFcn(app, varargin)
-            %{
-            if nargin<2
-                error('Please put in 2 images')
-            end
-            %}
-
-            if nargin > 0
+            %if coregistration_setup(1,2) that's for pre-co-registered images
+            if nargin == 3 
                 % read in DSC perfusion 
                 %dscpath = varargin{1};
                 dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
@@ -77,7 +72,19 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            %if coregistration_setup(1) thats for post-co-registered images
+            elseif nargin ==2
+                %read in DSC perfusion
+                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
+                app.dsc = niftiread(dsc_niftipath);
 
+                %read in the co-registered (in theory) spect 
+                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
+                app.spect = niftiread(spect_niftipath);
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
             else
                 error('havent gotten that far yet')
             end
@@ -94,7 +101,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
 
             %show overlay of the two on right panel
-            hdsc=imshow(app.dsc(:,:,round(app.dsc_slicenum)), [], 'parent', app.UIAxes3); %right panel
+            hdsc=imshow(app.dsc(:,:,round(app.dsc_slicenum/2)), [], 'parent', app.UIAxes3); %right panel
             hdsc;
             title('overlay of perfusion','parent',app.UIAxes3)
             hold (app.UIAxes3,'on');
@@ -142,6 +149,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             imshow(dscimage,[],'parent',app.UIAxes)
             colormap(app.UIAxes,app.colormapname),colorbar(app.UIAxes);
             app.SliceSliderLabel.Text = string('# ' + string(round(double(app.SliceSlider.Value))));
+            app.ZoomSliderLabel.Text = string('Z: ' + string(round(double(app.ZoomSlider.Value))));
         end
 
         function SliderValueChanged_2(app, event)
@@ -151,6 +159,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             imshow(spectimage,[],'parent',app.UIAxes2)
             colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
+            app.ZoomSlider_2Label.Text = string('Z: ' + string(round(double(app.ZoomSlider_2.Value))));
         end
 
         
@@ -199,7 +208,7 @@ classdef coregistration_setup < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app, varargin)
             %set default values
-            if nargin > 0
+            if nargin == 3 
                 % read in DSC perfusion 
                 %dscpath = varargin{1};
                 dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
@@ -214,7 +223,19 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-                
+            %if coregistration_setup(1) thats for post-co-registered images
+            elseif nargin ==2
+                %read in DSC perfusion
+                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
+                app.dsc = niftiread(dsc_niftipath);
+
+                %read in the co-registered (in theory) spect 
+                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
+                app.spect = niftiread(spect_niftipath);
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
             else
                 error('havent gotten that far yet')
             end
