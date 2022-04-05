@@ -164,7 +164,7 @@ classdef imagestack < matlab.apps.AppBase
             end
 
             app.MaxValue = max(app.InputImage,[],'all');
-            app.MinValue = 0;
+            app.MinValue = min(app.InputImage,[],'all');
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
@@ -183,8 +183,8 @@ classdef imagestack < matlab.apps.AppBase
             app.Slider = uislider(app.UIFigure);
             app.Slider.Orientation = 'vertical';
             app.Slider.Position = [18 57 3 446];
-            app.Slider.Limits = [0 app.MaxValue]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
-            app.Slider.Value= app.MaxValue;%250; %just standard max for perfusion MRI
+            app.Slider.Limits = [app.MinValue app.MaxValue]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
+            app.Slider.Value= app.MaxValue/2;%250; %just standard max for perfusion MRI
             app.Slider.ValueChangedFcn = createCallbackFcn(app, @SliderColorValueChanged, true);
 
             % Create Slice
