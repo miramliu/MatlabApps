@@ -56,9 +56,10 @@ classdef coregistration_setup < matlab.apps.AppBase
     methods (Access = private)
         %% startup function
         function startupFcn(app, varargin)
-            %if coregistration_setup(1,2) that's for pre-co-registered images
+            %this startup is hardocded, this is in progress...
+            %if coregistration_setup(1,2) that's for pre-co-registered images (mat file and spect dcm)
             if nargin == 3 
-                % read in DSC perfusion 
+                % read in DSC perfusion as post-processed mat file
                 %dscpath = varargin{1};
                 dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
                 load(dscpath, 'images')
@@ -72,15 +73,47 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            %if coregistration_setup(1) thats for post-co-registered images
+            %if coregistration_setup(1) thats for post-co-registered images (nifti and nifti)
             elseif nargin ==2
-                %read in DSC perfusion
+                %read in perufusion nifti
                 dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
                 app.dsc = niftiread(dsc_niftipath);
 
                 %read in the co-registered (in theory) spect 
                 spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
                 app.spect = niftiread(spect_niftipath);
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            %if coregistration_setup(1,2,3) that's for one 4D nifti at different times (comparing some time n to time0)
+            elseif nargin == 4 %
+                % this is for looking at dsc motion correction... just being lazy.
+                %read in one 4d nifti (but make 3d volume)
+                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/pt2_dsc4d.nii';
+                apple = niftiread(dsc_niftipath);
+                app.dsc = squeeze(apple(:,:,:,1)); %first time point
+
+                %read in the co-registered (in theory) nifti (again 3d volume) 
+                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/r51pt2_dsc4d.nii';
+                orange = niftiread(spect_niftipath);
+                app.spect = squeeze(orange(:,:,:,51)); %51st time point, after movement
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            %if coregistration_setup(1,2,3,4) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
+            elseif nargin == 5 %
+                % this is for looking at dsc motion correction... just being lazy.
+                %read in one 4d nifti (but make 3d volume)
+                LLPre_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPre/pt2_LLPre4d.nii';
+                apple = niftiread(LLPre_niftipath);
+                app.dsc = squeeze(apple(:,:,1,:)); %one slice, but scroll throgh time points
+
+                %read in the co-registered (in theory) nifti (again 3d volume) 
+                LLPost_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPost/pt2_LLPost4d.nii';
+                orange = niftiread(LLPost_niftipath);
+                app.spect = squeeze(orange(:,:,1,:)); %one slice, but scroll through time points
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
@@ -119,6 +152,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             dscimage = squeeze(app.dsc(:,:,round(double(app.SliceSlider.Value)))); %get correct slice
             rmpixels = round(app.ZoomSlider.Value/2);
             dscimage = dscimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+            dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
             hdsc=imshow(dscimage/max(max(dscimage)), [], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
             hdsc;
             title('overlay of perfusion','parent',app.UIAxes3)
@@ -128,7 +162,8 @@ classdef coregistration_setup < matlab.apps.AppBase
             spectimage = squeeze(app.spect(:,:,round(double(app.SliceSlider_2.Value)))); %get correct slice
             rmpixels = round(app.ZoomSlider_2.Value/2);
             spectimage = spectimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
-            
+            spectimage = imrotate(spectimage,app.RotationdegSlider_2.Value);
+
             %now gotta resize to match 
             [dscx, dscy, dscz] = size(dscimage);
             [spectx,specty,spectz] = size(spectimage);
@@ -146,8 +181,10 @@ classdef coregistration_setup < matlab.apps.AppBase
             dscimage = squeeze(app.dsc(:,:,round(double(app.SliceSlider.Value)))); %get correct slice
             rmpixels = round(app.ZoomSlider.Value/2);
             dscimage = dscimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+            dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
             imshow(dscimage,[],'parent',app.UIAxes)
             colormap(app.UIAxes,app.colormapname),colorbar(app.UIAxes);
+            app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider.Value))));
             app.SliceSliderLabel.Text = string('# ' + string(round(double(app.SliceSlider.Value))));
             app.ZoomSliderLabel.Text = string('Z: ' + string(round(double(app.ZoomSlider.Value))));
         end
@@ -156,8 +193,10 @@ classdef coregistration_setup < matlab.apps.AppBase
             spectimage = squeeze(app.spect(:,:,round(double(app.SliceSlider_2.Value)))); %get correct slice
             rmpixels = round(app.ZoomSlider_2.Value/2);
             spectimage = spectimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+            spectimage = imrotate(spectimage,app.RotationdegSlider_2.Value);
             imshow(spectimage,[],'parent',app.UIAxes2)
             colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
+            app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider_2.Value))));
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
             app.ZoomSlider_2Label.Text = string('Z: ' + string(round(double(app.ZoomSlider_2.Value))));
         end
@@ -236,6 +275,37 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            elseif nargin == 4 %
+                % this is for looking at dsc motion correction... just being lazy.
+                %read in one 4d nifti (but make 3d volume)
+                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/pt2_dsc4d.nii';
+                apple = niftiread(dsc_niftipath);
+                app.dsc = squeeze(apple(:,:,:,1)); %first time point
+
+                %read in the co-registered (in theory) nifti (again 3d volume) 
+                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/r51pt2_dsc4d.nii';
+                orange = niftiread(spect_niftipath);
+                app.spect = squeeze(orange(:,:,:,51)); %51st time point, after movement
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+                 %if coregistration_setup(1,2,3,4) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
+            elseif nargin == 5 %
+                % this is for looking at dsc motion correction... just being lazy.
+                %read in one 4d nifti (but make 3d volume)
+                LLPre_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPre/pt2_LLPre4d.nii';
+                apple = niftiread(LLPre_niftipath);
+                app.dsc = squeeze(apple(:,:,1,:)); %one slice, but scroll throgh time points
+
+                %read in the co-registered (in theory) nifti (again 3d volume) 
+                LLPost_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPost/pt2_LLPost4d.nii';
+                orange = niftiread(LLPost_niftipath);
+                app.spect = squeeze(orange(:,:,1,:)); %one slice, but scroll through time points
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
             else
                 error('havent gotten that far yet')
             end
@@ -284,8 +354,10 @@ classdef coregistration_setup < matlab.apps.AppBase
 
             % Create RotationdegSlider
             app.RotationdegSlider = uislider(app.LeftPanel);
-            app.RotationdegSlider.Limits = [-15 15];
+            app.RotationdegSlider.Limits = [-30 30];
             app.RotationdegSlider.Position = [84 146 150 3];
+            app.RotationdegSlider.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_1, true);
+
 
             % Create ZoomSliderLabel
             app.ZoomSliderLabel = uilabel(app.LeftPanel);
@@ -341,7 +413,9 @@ classdef coregistration_setup < matlab.apps.AppBase
 
             % Create RotationdegSlider_2
             app.RotationdegSlider_2 = uislider(app.CenterPanel);
+            app.RotationdegSlider_2.Limits = [-30 30];
             app.RotationdegSlider_2.Position = [88 144 150 3];
+            app.RotationdegSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);
 
             % Create ZoomSlider_2Label
             app.ZoomSlider_2Label = uilabel(app.CenterPanel);
