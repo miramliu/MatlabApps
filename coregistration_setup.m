@@ -57,37 +57,37 @@ classdef coregistration_setup < matlab.apps.AppBase
         %% startup function
         function startupFcn(app, varargin)
             %this startup is hardocded, this is in progress...
-            %if coregistration_setup(1,2) that's for pre-co-registered images (mat file and spect dcm)
+            %if coregistration_setup(path1,path2) that's for pre-co-registered images (mat file and spect dcm)
             if nargin == 3 
                 % read in DSC perfusion as post-processed mat file
-                %dscpath = varargin{1};
-                dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
+                dscpath = varargin{1};
+                %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
                 load(dscpath, 'images')
                 app.dsc = images{15};
     
                 % read in the spect perfusion
-                %spectpath = varargin{2};
-                spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
+                spectpath = varargin{2};
+                %spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
                 app.spect = squeeze(dicomread(spectpath));
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            %if coregistration_setup(1) thats for post-co-registered images (nifti and nifti)
-            elseif nargin ==2
+            %if coregistration_setup(path1,path2,1) thats for post-co-registered images (nifti and nifti)
+            elseif nargin ==4
                 %read in perufusion nifti
-                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
+                dsc_niftipath = varargin{1};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
                 app.dsc = niftiread(dsc_niftipath);
 
                 %read in the co-registered (in theory) spect 
-                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
+                spect_niftipath = varargin{2};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
                 app.spect = niftiread(spect_niftipath);
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            %if coregistration_setup(1,2,3) that's for one 4D nifti at different times (comparing some time n to time0)
-            elseif nargin == 4 %
+            %if coregistration_setup(1,2,3,4) that's for one 4D nifti at different times (comparing some time n to time0)
+            elseif nargin == 5 %
                 % this is for looking at dsc motion correction... just being lazy.
                 %read in one 4d nifti (but make 3d volume)
                 dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/pt2_dsc4d.nii';
@@ -102,8 +102,8 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            %if coregistration_setup(1,2,3,4) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
-            elseif nargin == 5 %
+            %if coregistration_setup(1,2,3,4,5) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
+            elseif nargin == 6 %
                 % this is for looking at dsc motion correction... just being lazy.
                 %read in one 4d nifti (but make 3d volume)
                 LLPre_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPre/pt2_LLPre4d.nii';
@@ -247,35 +247,37 @@ classdef coregistration_setup < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app, varargin)
             %set default values
+            %if coregistration_setup(path1,path2) that's for pre-co-registered images (mat file and spect dcm)
             if nargin == 3 
-                % read in DSC perfusion 
-                %dscpath = varargin{1};
-                dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
+                % read in DSC perfusion as post-processed mat file
+                dscpath = varargin{1};
+                %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
                 load(dscpath, 'images')
                 app.dsc = images{15};
     
                 % read in the spect perfusion
-                %spectpath = varargin{2};
-                spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
+                spectpath = varargin{2};
+                %spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
                 app.spect = squeeze(dicomread(spectpath));
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            %if coregistration_setup(1) thats for post-co-registered images
-            elseif nargin ==2
-                %read in DSC perfusion
-                dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
+            %if coregistration_setup(path1,path2,1) thats for post-co-registered images (nifti and nifti)
+            elseif nargin ==4
+                %read in perufusion nifti
+                dsc_niftipath = varargin{1};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/DSCPerf/pt6_dsc.nii';
                 app.dsc = niftiread(dsc_niftipath);
 
                 %read in the co-registered (in theory) spect 
-                spect_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
+                spect_niftipath = varargin{2};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_niftis/SPECT/rpt6_spect.nii';
                 app.spect = niftiread(spect_niftipath);
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-            elseif nargin == 4 %
+            %if coregistration_setup(1,2,3,4) that's for one 4D nifti at different times (comparing some time n to time0)
+            elseif nargin == 5 %
                 % this is for looking at dsc motion correction... just being lazy.
                 %read in one 4d nifti (but make 3d volume)
                 dsc_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/pt2_dsc4d.nii';
@@ -290,8 +292,8 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
-                 %if coregistration_setup(1,2,3,4) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
-            elseif nargin == 5 %
+            %if coregistration_setup(1,2,3,4,5) that's for pre and post T1, ONCE IN NIFTI FORMAT (4d volume and all)
+            elseif nargin == 6 %
                 % this is for looking at dsc motion correction... just being lazy.
                 %read in one 4d nifti (but make 3d volume)
                 LLPre_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPre/pt2_LLPre4d.nii';
