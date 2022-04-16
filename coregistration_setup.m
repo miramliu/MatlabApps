@@ -34,15 +34,20 @@ classdef coregistration_setup < matlab.apps.AppBase
         RangeSlider_2Label        matlab.ui.control.Label
         UIAxes2                   matlab.ui.control.UIAxes
         RightPanel                matlab.ui.container.Panel
-        RangeSlider_3             matlab.ui.control.Slider
-        RangeSlider_3Label        matlab.ui.control.Label
         ViewOverlayButton         matlab.ui.control.Button
+        leftButton                matlab.ui.control.Button
+        rightButton               matlab.ui.control.Button
+        downButton                matlab.ui.control.Button
+        upButton                  matlab.ui.control.Button
+        ShiftLabel                matlab.ui.control.Label
         UIAxes3   
         dsc
         spect
         colormapname
         dsc_slicenum
         spect_slicenum
+        updowncount
+        leftrightcount
         
     end
 
@@ -142,6 +147,9 @@ classdef coregistration_setup < matlab.apps.AppBase
             hspect.AlphaData = .4;
             colormap(app.UIAxes3,app.colormapname),colorbar(app.UIAxes3);
 
+            app.updowncount = 0;
+            app.leftrightcount = 0;
+
         end
 %% Callback functions
 
@@ -182,7 +190,8 @@ classdef coregistration_setup < matlab.apps.AppBase
             rmpixels = round(app.ZoomSlider.Value/2);
             dscimage = dscimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
             dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
-            imshow(dscimage,[],'parent',app.UIAxes)
+            maxslider1 = app.RangeSlider.Value;
+            imshow(dscimage,[0,maxslider1],'parent',app.UIAxes)
             colormap(app.UIAxes,app.colormapname),colorbar(app.UIAxes);
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider.Value))));
             app.SliceSliderLabel.Text = string('# ' + string(round(double(app.SliceSlider.Value))));
@@ -194,13 +203,62 @@ classdef coregistration_setup < matlab.apps.AppBase
             rmpixels = round(app.ZoomSlider_2.Value/2);
             spectimage = spectimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
             spectimage = imrotate(spectimage,app.RotationdegSlider_2.Value);
-            imshow(spectimage,[],'parent',app.UIAxes2)
+            maxslider2 = app.RangeSlider_2.Value;
+            imshow(spectimage,[0,maxslider2],'parent',app.UIAxes2)
             colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider_2.Value))));
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
             app.ZoomSlider_2Label.Text = string('Z: ' + string(round(double(app.ZoomSlider_2.Value))));
         end
 
+        %if the buttons to shift the SPECT image up down left and right. 
+        function LeftButtonClick(app,event)
+            [spectx,specty,spectz] = size(app.spect);
+            newim = app.spect(:, 2:end, :);
+            zeropad = zeros(spectx,1,spectz); %assuming 128 x 128 x 25 image
+            newim = [newim zeropad];
+            app.spect = newim; %remove leftmost column and replace with row of zeros on right
+            SliderValueChanged_2(app, event)
+            ViewOverlayButtonPushed(app, event)
+            app.leftrightcount = app.leftrightcount - 1;
+            app.ShiftLabel.Text = ['Shift: [' num2str(app.leftrightcount) ',' num2str(app.updowncount), ']'];
+        end
+
+        function RightButtonClick(app,event)
+            [spectx,specty,spectz] = size(app.spect);
+            newim = app.spect(:, 1:end-1, :);
+            zeropad = zeros(spectx,1,spectz); %assuming 128 x 128 x 25 image
+            newim = [zeropad newim];
+            app.spect = newim; %remove leftmost column and replace with row of zeros on right
+            SliderValueChanged_2(app, event)
+            ViewOverlayButtonPushed(app, event)
+            app.leftrightcount = app.leftrightcount + 1;
+            app.ShiftLabel.Text = ['Shift: [' num2str(app.leftrightcount) ',' num2str(app.updowncount), ']'];
+        end
+
+        function UpButtonClick(app,event)
+            [spectx,specty,spectz] = size(app.spect);
+            newim = app.spect(2:end, :, :);
+            zeropad = zeros(1,specty,spectz); %assuming 128 x 128 x 25 image
+            newim = [newim ;zeropad];
+            app.spect = newim;
+            SliderValueChanged_2(app, event)
+            ViewOverlayButtonPushed(app, event)
+            app.updowncount = app.updowncount + 1;
+            app.ShiftLabel.Text = ['Shift: [' num2str(app.leftrightcount) ',' num2str(app.updowncount), ']'];
+        end
+
+        function DownButtonClick(app,event)
+            [spectx,specty,spectz] = size(app.spect);
+            newim = app.spect(1:end-1, :, :);
+            zeropad = zeros(1,specty,spectz); %assuming 128 x 128 x 25 image
+            newim = [zeropad;newim];
+            app.spect = newim;
+            SliderValueChanged_2(app, event)
+            ViewOverlayButtonPushed(app, event)
+            app.updowncount = app.updowncount - 1;
+            app.ShiftLabel.Text = ['Shift: [' num2str(app.leftrightcount) ',' num2str(app.updowncount), ']'];
+        end
         
 %% app layuot update
 
@@ -347,6 +405,9 @@ classdef coregistration_setup < matlab.apps.AppBase
             % Create RangeSlider
             app.RangeSlider = uislider(app.LeftPanel);
             app.RangeSlider.Position = [85 196 150 3];
+            app.RangeSlider.Limits = [1,250];
+            app.RangeSlider.Value = 120;
+            app.RangeSlider.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_1, true);
 
             % Create RotationdegLabel
             app.RotationdegLabel = uilabel(app.LeftPanel);
@@ -406,6 +467,9 @@ classdef coregistration_setup < matlab.apps.AppBase
             % Create RangeSlider_2
             app.RangeSlider_2 = uislider(app.CenterPanel);
             app.RangeSlider_2.Position = [88 196 150 3];
+            app.RangeSlider_2.Limits = [1,2000];
+            app.RangeSlider_2.Value = 1200;
+            app.RangeSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);
 
             % Create RotationdegSlider_2Label
             app.RotationdegSlider_2Label = uilabel(app.CenterPanel);
@@ -455,22 +519,44 @@ classdef coregistration_setup < matlab.apps.AppBase
             title(app.UIAxes3, 'Title')
             app.UIAxes3.Position = [5 102 295 371];
 
-            % Create RangeSlider_3Label
-            app.RangeSlider_3Label = uilabel(app.RightPanel);
-            app.RangeSlider_3Label.HorizontalAlignment = 'right';
-            app.RangeSlider_3Label.Position = [43 81 40 22];
-            app.RangeSlider_3Label.Text = 'Range';
 
-            % Create RangeSlider_3
-            app.RangeSlider_3 = uislider(app.RightPanel);
-            app.RangeSlider_3.Position = [104 90 150 3];
-
-
-             %% Create ViewOverlayButton
+            % Create ViewOverlayButton
             app.ViewOverlayButton = uibutton(app.RightPanel, 'push');
             app.ViewOverlayButton.Position = [1 1 100 22];
             app.ViewOverlayButton.Text = 'View Overlay';
             app.ViewOverlayButton.ButtonPushedFcn = createCallbackFcn(app, @ViewOverlayButtonPushed, true);
+            
+            % Create rightButton
+            app.rightButton = uibutton(app.RightPanel, 'push');
+            app.rightButton.Position = [43 73 39 28];
+            app.rightButton.Text = {'right'};
+            app.rightButton.ButtonPushedFcn = createCallbackFcn(app, @RightButtonClick, true);
+
+            % Create leftButton
+            app.leftButton = uibutton(app.RightPanel, 'push');
+            app.leftButton.Position = [6 73 38 28];
+            app.leftButton.Text = 'left';
+            app.leftButton.ButtonPushedFcn = createCallbackFcn(app, @LeftButtonClick, true);
+
+            
+            % Create upButton
+            app.upButton = uibutton(app.RightPanel, 'push');
+            app.upButton.Position = [25 102 36 22];
+            app.upButton.Text = 'up';
+            app.upButton.ButtonPushedFcn = createCallbackFcn(app, @UpButtonClick, true);
+            
+
+            % Create downButton
+            app.downButton = uibutton(app.RightPanel, 'push');
+            app.downButton.Position = [20 52 45 22];
+            app.downButton.Text = 'down';
+            app.downButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonClick, true);
+
+            % Create ShiftLabel
+            app.ShiftLabel = uilabel(app.RightPanel);
+            app.ShiftLabel.Position = [100 90 84 22];
+            app.ShiftLabel.Text = 'Shift: [0,0]';
+
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
