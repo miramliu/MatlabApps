@@ -43,7 +43,8 @@ classdef coregistration_setup < matlab.apps.AppBase
         UIAxes3   
         dsc
         spect
-        colormapname
+        colormapname1
+        colormapname2
         dsc_slicenum
         spect_slicenum
         updowncount
@@ -61,14 +62,19 @@ classdef coregistration_setup < matlab.apps.AppBase
     methods (Access = private)
         %% startup function
         function startupFcn(app, varargin)
+
+            %set colormap for left and middle respectively
+            app.colormapname1 = 'jet';
+            app.colormapname2 = 'gray';
+
             %this startup is hardocded, this is in progress...
             %if coregistration_setup(path1,path2) that's for pre-co-registered images (mat file and spect dcm)
             if nargin == 3 
                 % read in DSC perfusion as post-processed mat file
                 dscpath = varargin{1};
                 %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
-                load(dscpath, 'images')
-                app.dsc = images{15};
+                load(dscpath, 'images', 'image_names')
+                app.dsc = images{strmatch('qCBF_nSVD',image_names)};
     
                 % read in the spect perfusion
                 spectpath = varargin{2};
@@ -123,20 +129,33 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            %two matlab iles (image1, image2, 1,2,3,4)
+            elseif nargin == 7
+                %these matalb files are preloaded in workspace (can you do that lol)
+                % read in image 1
+                app.dsc = varargin{1};
+    
+                % read in the spect perfusion
+                %spectpath = varargin{2};
+                %spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
+                app.spect = varargin{2};%load(spectpath);
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
             else
                 error('havent gotten that far yet')
             end
 
             % show dsc on left panel
-            app.colormapname = 'jet';
             imshow(app.dsc(:,:,round(app.dsc_slicenum/2)), [], 'parent', app.UIAxes) %left panel
             title('DSC perfusion', 'parent', app.UIAxes)
-            colormap(app.UIAxes,app.colormapname),colorbar(app.UIAxes);
+            colormap(app.UIAxes,app.colormapname1),colorbar(app.UIAxes);
 
             % show spect on center panel
             imshow(app.spect(:,:,round(app.spect_slicenum/2)), [], 'parent', app.UIAxes2) %center panel
             title('spect perfusion', 'parent', app.UIAxes2)
-            colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
+            colormap(app.UIAxes2,app.colormapname2),colorbar(app.UIAxes2);
 
             %show overlay of the two on right panel
             hdsc=imshow(app.dsc(:,:,round(app.dsc_slicenum/2)), [], 'parent', app.UIAxes3); %right panel
@@ -145,7 +164,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             hold (app.UIAxes3,'on');
             hspect = imshow(app.spect(:,:,round(app.spect_slicenum/2)), [], 'parent', app.UIAxes3);
             hspect.AlphaData = .4;
-            colormap(app.UIAxes3,app.colormapname),colorbar(app.UIAxes3);
+            colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
 
             app.updowncount = 0;
             app.leftrightcount = 0;
@@ -161,7 +180,9 @@ classdef coregistration_setup < matlab.apps.AppBase
             rmpixels = round(app.ZoomSlider.Value/2);
             dscimage = dscimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
             dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
-            hdsc=imshow(dscimage/max(max(dscimage)), [], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
+            %hdsc=imshow(dscimage/max(max(dscimage)), [], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
+            hdsc=imshow(dscimage, [0,app.RangeSlider.Value], 'parent', app.UIAxes3); %dsc, not normalized
+
             hdsc;
             title('overlay of perfusion','parent',app.UIAxes3)
             hold (app.UIAxes3,'on');
@@ -179,9 +200,11 @@ classdef coregistration_setup < matlab.apps.AppBase
             if dscx~= spectx || dscy~=specty
                 spectimage = imresize(spectimage, [dscx,dscy]);
             end
-            hspect = imshow(spectimage/max(max(spectimage)), [], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+            %hspect = imshow(spectimage/max(max(spectimage)), [], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+            hspect = imshow(spectimage, [0,app.RangeSlider_2.Value], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+
             hspect.AlphaData = .4;
-            colormap(app.UIAxes3,app.colormapname),colorbar(app.UIAxes3);
+            colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
         end
 
         %  ANY OF THE slider value changed (update ALL PARAMETERS: slice, zoom, rotation, range)
@@ -192,7 +215,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
             maxslider1 = app.RangeSlider.Value;
             imshow(dscimage,[0,maxslider1],'parent',app.UIAxes)
-            colormap(app.UIAxes,app.colormapname),colorbar(app.UIAxes);
+            colormap(app.UIAxes,app.colormapname1),colorbar(app.UIAxes);
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider.Value))));
             app.SliceSliderLabel.Text = string('# ' + string(round(double(app.SliceSlider.Value))));
             app.ZoomSliderLabel.Text = string('Z: ' + string(round(double(app.ZoomSlider.Value))));
@@ -205,7 +228,7 @@ classdef coregistration_setup < matlab.apps.AppBase
             spectimage = imrotate(spectimage,app.RotationdegSlider_2.Value);
             maxslider2 = app.RangeSlider_2.Value;
             imshow(spectimage,[0,maxslider2],'parent',app.UIAxes2)
-            colormap(app.UIAxes2,app.colormapname),colorbar(app.UIAxes2);
+            colormap(app.UIAxes2,app.colormapname2),colorbar(app.UIAxes2);
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider_2.Value))));
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
             app.ZoomSlider_2Label.Text = string('Z: ' + string(round(double(app.ZoomSlider_2.Value))));
@@ -310,8 +333,8 @@ classdef coregistration_setup < matlab.apps.AppBase
                 % read in DSC perfusion as post-processed mat file
                 dscpath = varargin{1};
                 %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
-                load(dscpath, 'images')
-                app.dsc = images{15};
+                load(dscpath, 'images', 'image_names')
+                app.dsc = images{strmatch('qCBF_nSVD',image_names)};
     
                 % read in the spect perfusion
                 spectpath = varargin{2};
@@ -362,6 +385,20 @@ classdef coregistration_setup < matlab.apps.AppBase
                 LLPost_niftipath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPost/pt2_LLPost4d.nii';
                 orange = niftiread(LLPost_niftipath);
                 app.spect = squeeze(orange(:,:,1,:)); %one slice, but scroll through time points
+
+                %check slice numbers
+                app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
+                app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+            %two matlab iles (image1, image2, 1,2,3,4)
+            elseif nargin == 7
+                %these matalb files are preloaded in workspace (can you do that lol)
+                % read in image 1
+                app.dsc = varargin{1};
+    
+                % read in the spect perfusion
+                %spectpath = varargin{2};
+                %spectpath ='/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_SPECT/HIR 14524/ICAD_UC007/study_20220315_0f141984e808c10c_UC-BRAIN/NM8_NM_-_Transaxials_AC_97c46a18/00001_077bbd7177b022b5.dcm';
+                app.spect = varargin{2};%load(spectpath);
 
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
