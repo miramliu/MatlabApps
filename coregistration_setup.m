@@ -49,7 +49,7 @@ classdef coregistration_setup < matlab.apps.AppBase
         spect_slicenum
         updowncount
         leftrightcount
-        
+        ComparisonType
     end
 
 %% Properties that correspond to apps with auto-reflow
@@ -143,6 +143,8 @@ classdef coregistration_setup < matlab.apps.AppBase
                 %check slice numbers
                 app.dsc_slicenum = size(app.dsc,3); % number of slices (assuming x,y,slice)
                 app.spect_slicenum = size(app.spect,3); % number of slices (assuming x,y,slice)
+
+                app.ComparisonType = varargin{3};
             else
                 error('havent gotten that far yet')
             end
@@ -227,7 +229,11 @@ classdef coregistration_setup < matlab.apps.AppBase
             spectimage = spectimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
             spectimage = imrotate(spectimage,app.RotationdegSlider_2.Value);
             maxslider2 = app.RangeSlider_2.Value;
-            imshow(spectimage,[0,maxslider2],'parent',app.UIAxes2)
+            if strmatch(app.ComparisonType,'pfa')
+                imshow(spectimage,[-2,maxslider2],'parent',app.UIAxes2)
+            else
+                imshow(spectimage,[0,maxslider2],'parent',app.UIAxes2)
+            end
             colormap(app.UIAxes2,app.colormapname2),colorbar(app.UIAxes2);
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider_2.Value))));
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
@@ -504,8 +510,14 @@ classdef coregistration_setup < matlab.apps.AppBase
             % Create RangeSlider_2
             app.RangeSlider_2 = uislider(app.CenterPanel);
             app.RangeSlider_2.Position = [88 196 150 3];
+            %this is for ADC... 
+            if nargin == 7 && strmatch(app.ComparisonType, 'pfa')
+                app.RangeSlider_2.Limits = [-2,4];
+                app.RangeSlider_2.Value = 1;
+            else
             app.RangeSlider_2.Limits = [1,2000];
             app.RangeSlider_2.Value = 1200;
+            end
             app.RangeSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);
 
             % Create RotationdegSlider_2Label
