@@ -182,8 +182,8 @@ classdef coregistration_setup < matlab.apps.AppBase
             rmpixels = round(app.ZoomSlider.Value/2);
             dscimage = dscimage(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
             dscimage = imrotate(dscimage,app.RotationdegSlider.Value);
-            %hdsc=imshow(dscimage/max(max(dscimage)), [], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
-            hdsc=imshow(dscimage, [0,app.RangeSlider.Value], 'parent', app.UIAxes3); %dsc, not normalized
+            hdsc=imshow(dscimage/app.RangeSlider.Value, [], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
+            %hdsc=imshow(dscimage, [0,app.RangeSlider.Value], 'parent', app.UIAxes3); %dsc, not normalized
 
             hdsc;
             title('overlay of perfusion','parent',app.UIAxes3)
@@ -202,8 +202,8 @@ classdef coregistration_setup < matlab.apps.AppBase
             if dscx~= spectx || dscy~=specty
                 spectimage = imresize(spectimage, [dscx,dscy]);
             end
-            %hspect = imshow(spectimage/max(max(spectimage)), [], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
-            hspect = imshow(spectimage, [0,app.RangeSlider_2.Value], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+            hspect = imshow(spectimage/app.RangeSlider_2.Value, [], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+            %hspect = imshow(spectimage, [0,app.RangeSlider_2.Value], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
 
             hspect.AlphaData = .4;
             colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
