@@ -1,6 +1,4 @@
-%put explanation here please 
-
-
+%% Code to get average IVIM curve, and fit, for ROIs.
 
 % Example Run: 
 %GMroi = '/Users/neuroimaging/Desktop/DATA/IVIM_TimTests/MIRA_IVIM/gmROItest.mat';

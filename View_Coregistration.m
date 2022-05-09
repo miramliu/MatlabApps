@@ -111,16 +111,16 @@ classdef View_Coregistration < matlab.apps.AppBase
                 % this is for looking at dsc motion correction... just being lazy.
                 %read in one 4d nifti (but make 3d volume)
                 image1_niftipath = varargin{1};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/pt2_dsc4d.nii';
-                apple = niftiread(image1_niftipath);
-                app.image1 = squeeze(apple(:,:,:,1)); %first time point
+                im1 = niftiread(image1_niftipath);
+                app.image1 = squeeze(im1(:,:,:,1)); %first time point
 
                 %read in the co-registered (in theory) nifti (again 3d volume) 
                 image2_niftipath = varargin{2};%'/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/DSCPerf/r51pt2_dsc4d.nii';
-                orange = niftiread(image2_niftipath);
+                im2 = niftiread(image2_niftipath);
                 if ~varargin{4}
                     error('no time point input')
                 end
-                app.image2 = squeeze(orange(:,:,:,varargin{4})); %51st time point, after movement
+                app.image2 = squeeze(im2(:,:,:,varargin{4})); %51st time point, after movement
 
                 %check slice numbers
                 app.image1_slicenum = size(app.image1,3); % number of slices (assuming x,y,slice)
@@ -130,13 +130,13 @@ classdef View_Coregistration < matlab.apps.AppBase
             elseif strcmp(app.ComparisonType,'T1 nii')
                 %read in one 4d nifti (but make 3d volume)
                 LLPre_niftipath = varargin{1}; %'/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPre/pt2_LLPre4d.nii';
-                apple = niftiread(LLPre_niftipath);
-                app.image1 = squeeze(apple(:,:,1,:)); %one slice, but scroll throgh time points
+                im1 = niftiread(LLPre_niftipath);
+                app.image1 = squeeze(im1(:,:,1,:)); %one slice, but scroll throgh time points
 
                 %read in the co-registered (in theory) nifti (again 3d volume) 
                 LLPost_niftipath = varargin{2}; %'/Users/neuroimaging/Desktop/DATA/ASVD/Pt2/pt2_niftis/LLPost/pt2_LLPost4d.nii';
-                orange = niftiread(LLPost_niftipath);
-                app.image2 = squeeze(orange(:,:,1,:)); %one slice, but scroll through time points
+                im2 = niftiread(LLPost_niftipath);
+                app.image2 = squeeze(im2(:,:,1,:)); %one slice, but scroll through time points
 
                 %check slice numbers
                 app.image1_slicenum = size(app.image1,3); % number of slices (assuming x,y,slice)

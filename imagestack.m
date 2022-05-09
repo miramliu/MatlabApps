@@ -5,8 +5,8 @@
 % can include name as second input to put a name of the stack of images
 %sets to middle slice, able to scroll or click through. select image to be able to use arrow keys to move through. 
 % able to change the minimum and maximum pixel value
-%figure scales with window size
-%can zoom in and out 
+% figure scales with window size
+% can zoom in and out 
 
 % to be added: be able to flip and rotate images, be able to see outlines
 % of ROIs while scrolling through stack, be able to change the colormap.

@@ -1,4 +1,6 @@
 This contains final versions of image viewing and sorting apps written in Matlab. 
+Mira Liu May 20222
+Reach out to them at liusarkarm@uchicago.edu if there are any questions.
 
 # Imagestack
 This is a basic image viewer.\

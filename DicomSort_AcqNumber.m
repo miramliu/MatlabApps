@@ -1,5 +1,6 @@
 function [] = DicomSort(varargin)
-%Function to sort dicoms into new folders based on sequence
+%Function to sort dicoms into new folders based on acquisition number. 
+%changed from series in case multiple sequences are taken without series name being changed.
 %This version uses dicominfo on every scan. it makes it slow, but reduces
 %error that can be found when sorting specifically processed images (WIP)
 %Inputs: none, user selects DICOM folder
