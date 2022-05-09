@@ -3,7 +3,7 @@ This contains final versions of image viewing and sorting apps written in Matlab
 # Imagestack
 This is a basic image viewer.\
 Input: 3D volume to view.\
-Output: image stack along thrid dimension.\
+Output: image stack along thrid dimension.
 
 Assumes input of a 3D volume with the dimensions [X,Y,slice]. If the 3D volume is [slice, X,Y], include 'permute' as the second input.\
 It sets automatically to the middle slices, and allows scrolling through the volume. Can change minimum an dmaximum pixel value, and figure scales with window size. Can zoom in and out with normal figure function. 
@@ -38,9 +38,36 @@ Comparison types:
     >> View_Coregistration(qCBF, MD.masks, 'pfa')
 
 # PlotIVIMCurve
+This is an image viewer to see the IVIM curve for a certain pixel and view it side by side with the image. It displays the IVIM qCBF image on the left, and the curve for the chosen pixel on the right. It starts at the center pixel, but after movement of the mouse should update upon location of cursor which will show the plot and biexponential curve fit on the left when the button  'Show Plot' is clicked.\
+Input: path to matfile with variables f, D, D*, pathtofolder of sorted dcm files, slice of interest. Or pre-loaded variables f, D, D*, and pathtofolder of sorted dcmfiles, slice of interest\
+Output: image of slice, slider for pixel intensity range, reference image, and biexponential data, curvefit, and parameters.
+
+## Example: 
+    >> PlotIVIMCurve('pathtomatfile/Scan_sorted_2step.mat','pathtodcms/')
+    >> PlotIVIMCurve(f,D,Dstar,'pathtodcms/')
+    
 
 # Average IVIM Curve
+This is an image viewing function (not app) for getting the average IVIM biexponential curve for multiple ROIs and overlaying them. It can also be called to draw one ROI and save it.
+Input: IVIMfile,IVIM dimage directory, slice, ROI name to draw and save. Or IVIIM file, Image directory, slice, three ROIs to show.
+Output: ROI average biexponential curve (not fit). Or all three ROI average biexponential curves (not fit) overlaid for comparison, with three different figures with different normalizations (standardized across all three ROIs within each image). 
+
+## Example: 
+    >> GMROI= 'pathtoGM/GM.mat'
+    >> WMROI = 'pathtoWM/WM.mat'
+    >> CSFROI = 'pathtoCSF/CSF.mat'
+    >> IVIMfile = 'pathtoivim/Scan_sorted_2step.mat'
+    >> Imagedirectory = 'pathtoIMimages/Scan_sorted'
+    >> slice = 20
+    >> AverageIVIMCurve(IVIMfile,Imagedirectory,slice,CSFROI,WMROI,GMROI)
 
 # DicomSort
+Function to sort dicoms into new folders based on sequence. This version uses dicominfo on every scan. it makes it slow, but reduces error that can be found when sorting specifically processed images (WIP).
+## Example: 
+    >> DicomSort('/Users/neuroimaging/Desktop/DATA/DDcorr/Collat_27/Day2/')
 
 # DicomSort_AcqNNumber
+Function to sort dicoms into new folders based on acquisition number. Changed from series in case multiple sequences are taken without series name being changed.
+
+## Example: 
+    >> DicomSort_AcqNNumber('/Users/neuroimaging/Desktop/DATA/DDcorr/Collat_27/Day2/')
