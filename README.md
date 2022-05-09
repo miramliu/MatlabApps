@@ -8,11 +8,13 @@ Input: 3D volume to view.\
 Output: image stack along thrid dimension.
 
 Assumes input of a 3D volume with the dimensions [X,Y,slice]. If the 3D volume is [slice, X,Y], include 'permute' as the second input.\
-It sets automatically to the middle slices, and allows scrolling through the volume. Can change minimum an dmaximum pixel value, and figure scales with window size. Can zoom in and out with normal figure function. 
+It sets automatically to the middle slices, and allows scrolling through the volume. 
+Can change minimum an dmaximum pixel value, and figure scales with window size. Can zoom in and out with normal figure function. 
+Can name the figure with second input (as long as it is not 'permute')
 
 ## Example:
     >> load ('/Debugging/P001GE_M.mat', images)
-    >> imagestack(images{19})
+    >> imagestack(images{19},'qCBF image')
 
 
 # View_Coregistration

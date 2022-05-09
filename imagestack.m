@@ -74,7 +74,7 @@ classdef imagestack < matlab.apps.AppBase
             data = app.InputImage(:,:,round(app.Ss/2));
             app.UIAxes.reset
             imshow(data,[],'parent',app.UIAxes)
-            title('Image Display','parent',app.UIAxes)
+            title(name,'parent',app.UIAxes)
             colormap(app.UIAxes,colormapname),colorbar(app.UIAxes);
         end
 
@@ -163,8 +163,8 @@ classdef imagestack < matlab.apps.AppBase
                 app.InputImage=permute(B,[2 3 1]);
             end
 
-            app.MaxValue = (max(app.InputImage,[],'all'));
-            app.MinValue = (min(app.InputImage,[],'all'));
+            app.MaxValue = real(max(app.InputImage,[],'all'));
+            app.MinValue = real(min(app.InputImage,[],'all'));
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');

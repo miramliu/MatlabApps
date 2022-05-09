@@ -70,7 +70,7 @@ classdef View_Coregistration < matlab.apps.AppBase
 
             %set colormap for left and middle respectively
             app.colormapname1 = 'jet';
-            app.colormapname2 = 'gray';
+            app.colormapname2 = 'jet'; %gray or jet
             
             %set up different comparisons based on the types of file you are comparing: 
             app.ComparisonType = varargin{3};
@@ -143,7 +143,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.image2_slicenum = size(app.image2,3); % number of slices (assuming x,y,slice)
 
             % 'matmat' compares two matlab files.
-            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') 
+            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference')
                 %these matalb files are preloaded in workspace (can you do that lol)
                 % read in image 1
                 app.image1 = varargin{1};
@@ -160,14 +160,22 @@ classdef View_Coregistration < matlab.apps.AppBase
                 error('input comparison type not recognized')
             end
 
-            % show dsc on left panel
+            % show image 1 on left panel
             imshow(app.image1(:,:,round(app.image1_slicenum/2)), [], 'parent', app.UIAxes) %left panel
-            title('Image 1', 'parent', app.UIAxes)
+            if strcmp(app.ComparisonType,'matmat difference')
+                title('Without correction', 'parent', app.UIAxes)
+            else
+                title('Image 1', 'parent', app.UIAxes)
+            end
             colormap(app.UIAxes,app.colormapname1),colorbar(app.UIAxes);
 
-            % show spect on center panel
+            % show image 2 on center panel
             imshow(app.image2(:,:,round(app.image2_slicenum/2)), [], 'parent', app.UIAxes2) %center panel
-            title('Image 2', 'parent', app.UIAxes2)
+            if strcmp(app.ComparisonType,'matmat difference')
+                title('With DD correction', 'parent', app.UIAxes2)
+            else
+                title('Image 2', 'parent', app.UIAxes2)
+            end
             colormap(app.UIAxes2,app.colormapname2),colorbar(app.UIAxes2);
 
             %show overlay of the two on right panel
@@ -187,37 +195,65 @@ classdef View_Coregistration < matlab.apps.AppBase
 
         % Button pushed function: ShowPlotButton
         function ViewOverlayButtonPushed(app, event)
-            %show overlay of the two on right panel WITH SLICE ON RESPECTIVE SLIDERS
-            %get DSC
-            image1image = squeeze(app.image1(:,:,round(double(app.SliceSlider.Value)))); %get correct slice
-            rmpixels = round(app.ZoomSlider.Value/2);
-            image1image = image1image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
-            image1image = imrotate(image1image,app.RotationdegSlider.Value);
-            himage1=imshow(image1image/app.RangeSlider.Value, [0 1], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
-            %hdsc=imshow(dscimage, [0,app.RangeSlider.Value], 'parent', app.UIAxes3); %dsc, not normalized
+            if strcmp(app.ComparisonType,'matmat difference')
+                %get image1
+                image1image = squeeze(app.image1(:,:,round(double(app.SliceSlider.Value)))); %get correct slice
+                rmpixels = round(app.ZoomSlider.Value/2);
+                image1image = image1image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+                image1image = imrotate(image1image,app.RotationdegSlider.Value);
+                
+                %get image2
+                image2image = squeeze(app.image2(:,:,round(double(app.SliceSlider_2.Value)))); %get correct slice
+                rmpixels = round(app.ZoomSlider_2.Value/2);
+                image2image = image2image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+                image2image = imrotate(image2image,app.RotationdegSlider_2.Value);
+    
+                %now gotta resize to match in case they don't
+                [image1x, image1y, image1z] = size(image1image);
+                [image2x,image2y,image2z] = size(image2image);
+    
+                if image1x~= image2x || image1y~=image2y
+                    image2image = imresize(image2image, [image1x,image1y]);
+                end
 
-            himage1;
-            title('overlay of perfusion','parent',app.UIAxes3)
-            hold (app.UIAxes3,'on');
-            
-            %overlay SPECT
-            image2image = squeeze(app.image2(:,:,round(double(app.SliceSlider_2.Value)))); %get correct slice
-            rmpixels = round(app.ZoomSlider_2.Value/2);
-            image2image = image2image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
-            image2image = imrotate(image2image,app.RotationdegSlider_2.Value);
+                image_difference = imabsdiff(image2image, image1image); %absolute difference between the two element-by-element
+                imshow(image_difference, [0 50], 'parent', app.UIAxes3); %dsc, not normalized
+                title('Absolute Difference','parent',app.UIAxes3)
+                colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
 
-            %now gotta resize to match 
-            [image1x, image1y, image1z] = size(image1image);
-            [image2x,image2y,image2z] = size(image2image);
-
-            if image1x~= image2x || image1y~=image2y
-                image2image = imresize(image2image, [image1x,image1y]);
+            else
+                %show overlay of the two on right panel WITH SLICE ON RESPECTIVE SLIDERS
+                %get image1
+                image1image = squeeze(app.image1(:,:,round(double(app.SliceSlider.Value)))); %get correct slice
+                rmpixels = round(app.ZoomSlider.Value/2);
+                image1image = image1image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+                image1image = imrotate(image1image,app.RotationdegSlider.Value);
+                himage1=imshow(image1image/app.RangeSlider.Value, [0 1], 'parent', app.UIAxes3); %dsc, normalized to max :/ 
+                %hdsc=imshow(dscimage, [0,app.RangeSlider.Value], 'parent', app.UIAxes3); %dsc, not normalized
+    
+                himage1;
+                title('overlay of perfusion','parent',app.UIAxes3)
+                hold (app.UIAxes3,'on');
+                
+                %overlay image2
+                image2image = squeeze(app.image2(:,:,round(double(app.SliceSlider_2.Value)))); %get correct slice
+                rmpixels = round(app.ZoomSlider_2.Value/2);
+                image2image = image2image(rmpixels:end-rmpixels,rmpixels:end-rmpixels); %crop to correct zoom (which is removing 1/2 zoom number of pixels from all directions)
+                image2image = imrotate(image2image,app.RotationdegSlider_2.Value);
+    
+                %now gotta resize to match 
+                [image1x, image1y, image1z] = size(image1image);
+                [image2x,image2y,image2z] = size(image2image);
+    
+                if image1x~= image2x || image1y~=image2y
+                    image2image = imresize(image2image, [image1x,image1y]);
+                end
+                himage2 = imshow(image2image/app.RangeSlider_2.Value, [0 1], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+                %hspect = imshow(spectimage, [0,app.RangeSlider_2.Value], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
+    
+                himage2.AlphaData = .4;
+                colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
             end
-            himage2 = imshow(image2image/app.RangeSlider_2.Value, [0 1], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
-            %hspect = imshow(spectimage, [0,app.RangeSlider_2.Value], 'parent', app.UIAxes3);% spect, numberalized to max :/ 
-
-            himage2.AlphaData = .4;
-            colormap(app.UIAxes3,app.colormapname1),colorbar(app.UIAxes3);
         end
 
         %  ANY OF THE slider value changed (update ALL PARAMETERS: slice, zoom, rotation, range)
@@ -229,7 +265,8 @@ classdef View_Coregistration < matlab.apps.AppBase
             maxslider1 = app.RangeSlider.Value;
             imshow(image1image,[0,maxslider1],'parent',app.UIAxes)
             colormap(app.UIAxes,app.colormapname1),colorbar(app.UIAxes);
-            app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider.Value))));
+            app.RangeSliderLabel.Text = string(round(double(maxslider1)));
+            app.RotationdegLabel.Text = string('deg: ' + string(round(double(app.RotationdegSlider.Value))));
             app.SliceSliderLabel.Text = string('# ' + string(round(double(app.SliceSlider.Value))));
             app.ZoomSliderLabel.Text = string('Z: ' + string(round(double(app.ZoomSlider.Value))));
         end
@@ -246,6 +283,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 imshow(image2image,[0,maxslider2],'parent',app.UIAxes2)
             end
             colormap(app.UIAxes2,app.colormapname2),colorbar(app.UIAxes2);
+            app.RangeSlider_2Label.Text = string(round(double(maxslider2)));
             app.RotationdegSlider_2Label.Text = string('deg: ' + string(round(double(app.RotationdegSlider_2.Value))));
             app.SliceSlider_2Label.Text = string('# ' + string(round(double(app.SliceSlider_2.Value))));
             app.ZoomSlider_2Label.Text = string('Z: ' + string(round(double(app.ZoomSlider_2.Value))));
@@ -419,7 +457,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.image2_slicenum = size(app.image2,3); % number of slices (assuming x,y,slice)
 
             % 'matmat' compares two matlab files.
-            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') 
+            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference')
                 %these matalb files are preloaded in workspace (can you do that lol)
                 % read in image 1
                 app.image1 = varargin{1};
@@ -596,26 +634,31 @@ classdef View_Coregistration < matlab.apps.AppBase
             app.ViewOverlayButton = uibutton(app.RightPanel, 'push');
             app.ViewOverlayButton.Position = [7 90 100 22];
             app.ViewOverlayButton.Text = 'View Overlay';
+            app.ViewOverlayButton.ButtonPushedFcn = createCallbackFcn(app, @ViewOverlayButtonPushed, true);
             
             % Create rightButton
             app.rightButton = uibutton(app.RightPanel, 'push');
             app.rightButton.Position = [44 154 39 28];
             app.rightButton.Text = {'right'; ''};
+            app.rightButton.ButtonPushedFcn = createCallbackFcn(app, @RightButtonClick, true);
 
             % Create leftButton
             app.leftButton = uibutton(app.RightPanel, 'push');
             app.leftButton.Position = [7 154 38 28];
             app.leftButton.Text = 'left';
+            app.leftButton.ButtonPushedFcn = createCallbackFcn(app, @LeftButtonClick, true);
 
             % Create upButton
             app.upButton = uibutton(app.RightPanel, 'push');
             app.upButton.Position = [26 183 36 22];
             app.upButton.Text = 'up';
+            app.upButton.ButtonPushedFcn = createCallbackFcn(app, @UpButtonClick, true);
 
             % Create downButton
             app.downButton = uibutton(app.RightPanel, 'push');
             app.downButton.Position = [21 133 45 22];
             app.downButton.Text = 'down';
+            app.downButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonClick, true);
 
             % Create ShiftLabel
             app.ShiftLabel = uilabel(app.RightPanel);
