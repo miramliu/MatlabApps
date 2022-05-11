@@ -662,8 +662,8 @@ classdef View_Coregistration < matlab.apps.AppBase
 
             % Create ShiftLabel
             app.ShiftLabel = uilabel(app.RightPanel);
-            app.ShiftLabel.Position = [101 157 37 22];
-            app.ShiftLabel.Text = 'Shift: ';
+            app.ShiftLabel.Position = [101 157 67 22];
+            app.ShiftLabel.Text = 'Shift: [0,0]';
 
 
             % Show the figure after all components are created
