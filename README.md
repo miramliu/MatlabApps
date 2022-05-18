@@ -30,8 +30,9 @@ Comparison types:
 3) 'qCBF 4Dnii': this assumes that the first input is to a 4D nii file (so 3D volumes taken over time), and that the second input is to a specific time point nifti file. There is a require fourth input which is the timepoint of interest. 
 4) 'T1 nii': this assumes that the first input is a nifti of T1 pre and that the second input is a nifti of T1 post. 
 5) 'matmat': this assumes it is a comparison of two preloaded mat files. 
+6) 'matmat difference': this assumes it is a comparison of two preloaded mat files and you want the absolute difference between the two
 6) 'pfa': this assumes it is a comparison of two preloaded matfiles, and that the first is a qCBF image and the second is a DWI image.
-
+7) 'mask overlay': this assumes that it is an overlaying of a mask onto a qCBF image. The second is a binary mask to be applied to the qCBF.
 
 ## Example of different runs: 
     >> View_Coregistration('pathtomatfil/P001GE_M.mat','pathtodicom/spect.dcm','qCBF matdcm')
@@ -39,7 +40,7 @@ Comparison types:
     >> View_Coregistration('pathtonii1/pt_dsc4d.nii', 'pathtonii1/r10pt_dsc4d.nii', 'qCBF 4Dnii', 10)
     >> View_Coregistration('pathtoLLprenii/pt_LLPre4d.nii', 'pathtoLLpostnii/pt_LLPost4d.nii','T1 nii')
     >> View_Coregistration(infarctData.pfa{1},  infarctData.masks{1},'matmat')
-    >> View_Coregistration(qCBF, MD.masks, 'pfa')
+    >> View_Coregistration(qCBF, MD.masks, 'mask overlay')
 
 # PlotIVIMCurve
 This is an image viewer to see the IVIM curve for a certain pixel and view it side by side with the image. It displays the IVIM qCBF image on the left, and the curve for the chosen pixel on the right. It starts at the center pixel, but after movement of the mouse should update upon location of cursor which will show the plot and biexponential curve fit on the left when the button  'Show Plot' is clicked.\

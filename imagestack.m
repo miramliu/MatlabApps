@@ -163,8 +163,8 @@ classdef imagestack < matlab.apps.AppBase
                 app.InputImage=permute(B,[2 3 1]);
             end
 
-            app.MaxValue = real(max(app.InputImage,[],'all'));
-            app.MinValue = real(min(app.InputImage,[],'all'));
+            app.MaxValue = real(max(app.InputImage,[],'all'))
+            app.MinValue = real(min(app.InputImage,[],'all'))
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');

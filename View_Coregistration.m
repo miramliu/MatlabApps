@@ -70,7 +70,11 @@ classdef View_Coregistration < matlab.apps.AppBase
 
             %set colormap for left and middle respectively
             app.colormapname1 = 'jet';
-            app.colormapname2 = 'jet'; %gray or jet
+            if strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'mask overlay')
+                app.colormapname2 = 'gray'; %gray or jet
+            else
+                app.colormapname2 = 'jet'; %gray or jet
+            end
             
             %set up different comparisons based on the types of file you are comparing: 
             app.ComparisonType = varargin{3};
@@ -143,7 +147,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.image2_slicenum = size(app.image2,3); % number of slices (assuming x,y,slice)
 
             % 'matmat' compares two matlab files.
-            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference')
+            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference') || strcmp(app.ComparisonType,'mask overlay')
                 %these matalb files are preloaded in workspace (can you do that lol)
                 % read in image 1
                 app.image1 = varargin{1};
@@ -279,6 +283,8 @@ classdef View_Coregistration < matlab.apps.AppBase
             maxslider2 = app.RangeSlider_2.Value;
             if strcmp(app.ComparisonType,'pfa')
                 imshow(image2image,[-2,maxslider2],'parent',app.UIAxes2)
+            elseif strcmp(app.ComparisonType,'mask overlay')
+                imshow(image2image,[0,1],'parent',app.UIAxes2)
             else
                 imshow(image2image,[0,maxslider2],'parent',app.UIAxes2)
             end
@@ -457,7 +463,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.image2_slicenum = size(app.image2,3); % number of slices (assuming x,y,slice)
 
             % 'matmat' compares two matlab files.
-            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference')
+            elseif strcmp(app.ComparisonType,'matmat') || strcmp(app.ComparisonType,'pfa') || strcmp(app.ComparisonType,'matmat difference') || strcmp(app.ComparisonType,'mask overlay')
                 %these matalb files are preloaded in workspace (can you do that lol)
                 % read in image 1
                 app.image1 = varargin{1};
@@ -471,7 +477,8 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.image1_slicenum = size(app.image1,3); % number of slices (assuming x,y,slice)
                 app.image2_slicenum = size(app.image2,3); % number of slices (assuming x,y,slice)
             else
-                error('input comparison type not recognized')
+                fprintf('Choose from following list:\nqCBF matdcm, qCBF niinii, qCBF 4Dnii, T1 nii, matmat, matmat difference, pfa, mask overlay')
+                error('Input comparison type not recognized')
             end
 
 
@@ -573,12 +580,15 @@ classdef View_Coregistration < matlab.apps.AppBase
             app.RangeSlider_2 = uislider(app.CenterPanel);
             app.RangeSlider_2.Position = [88 196 150 3];
             %this is for ADC... 
-            if nargin == 7 && strcmp(app.ComparisonType, 'pfa')
+            if strcmp(app.ComparisonType, 'pfa')
                 app.RangeSlider_2.Limits = [-2,4];
                 app.RangeSlider_2.Value = 1;
+            elseif strcmp(app.ComparisonType,'mask overlay')
+                app.RangeSlider_2.Limits = [0,1];
+                app.RangeSlider_2.Value = .5;
             else
-            app.RangeSlider_2.Limits = [1,2000];
-            app.RangeSlider_2.Value = 1200;
+                app.RangeSlider_2.Limits = [1,2000];
+                app.RangeSlider_2.Value = 1200;
             end
             app.RangeSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);
 
