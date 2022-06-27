@@ -517,7 +517,7 @@ classdef View_Coregistration < matlab.apps.AppBase
             % Create RangeSlider
             app.RangeSlider = uislider(app.LeftPanel);
             app.RangeSlider.Position = [85 196 150 3];
-            app.RangeSlider.Limits = [1,2000];
+            app.RangeSlider.Limits = [1,1000];
             app.RangeSlider.Value = 120;
             app.RangeSlider.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_1, true);
 
@@ -587,8 +587,8 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.RangeSlider_2.Limits = [0,1];
                 app.RangeSlider_2.Value = .5;
             else
-                app.RangeSlider_2.Limits = [1,2000];
-                app.RangeSlider_2.Value = 1200;
+                app.RangeSlider_2.Limits = [1,1000];
+                app.RangeSlider_2.Value = 120;
             end
             app.RangeSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);
 
