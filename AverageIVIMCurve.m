@@ -11,13 +11,13 @@
 %>> AverageIVIMCurve(IVIMfile,ImageDirectory,Slice,CSFroi,WMroi,GMroi)
 %mira liu 04/11/2022
 
-function AverageIVIMCurve(varargin)
+function ROIStruct = AverageIVIMCurve(varargin)
 
 ivimfilepath = varargin{1};
 load(ivimfilepath, 'f', 'D', 'Dstar') %this is the IVIM file
 Image_Directory=varargin{2}; %the path to the directory
 slice = varargin{3};
-ROI_directory = varargin{4}; 
+
 f = squeeze(f(slice,:,:)); %get the slice of interest for f, D, and Dstar
 D = squeeze(D(slice,:,:));
 Dstar = squeeze(Dstar(slice,:,:));
@@ -42,25 +42,36 @@ Start_Index = 28;
 % or 2) roi that you're going to draw and save here.
 %The input would be AverageIVIMCurve(IVIMfile,ImageDirectory,Slice,ROI_Name)
 if nargin == 4
-    if ~exist(ROI_directory,'file')
+    ROI_directory = varargin{4}; 
+    if ~exist(ROI_directory,'file')as
         figure,imshow(Image,[0 120]),colormap(gca,'jet'),colorbar,truesize([300 300])
         ROI = roipoly;
         save(ROI_directory,'ROI')
     else
-        load(ROI_directory,'ROI')
+        try
+            load(ROI_directory,'ROI')
+            Signal = getAvergeROI(Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,ROI); %nested function
+            %plot (normalized)
+            figure,
+            plot(Bvalues,Signal/Signal(1),LineWidth=3.0)
+            hold on
+            scatter(Bvalues,Signal/Signal(1),70,"black","filled")
+            hold off
+        
+            CSF_sig = 0;
+            WM_sig = 0;
+            GM_sig = 0;
+            ROIStruct = Signal;
+        catch
+            %load(ROI_directory,'CSF_Roi','GM_Roi','WM_Roi')
+            %ROIStruct = RunOnThreeROIs(Bvalues,Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,CSF_Roi,WM_Roi,GM_Roi);
+
+            load(ROI_directory,'ROI_4','ROI_5','ROI_6')
+            ROIStruct = RunOnThreeROIs(Bvalues,Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,ROI_4,ROI_5,ROI_6);
+            
+        end
     end
 
-    Signal = getAvergeROI(Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,ROI); %nested function
-    %plot (normalized)
-    figure,
-    plot(Bvalues,Signal/Signal(1),LineWidth=3.0)
-    hold on
-    scatter(Bvalues,Signal/Signal(1),70,"black","filled")
-    hold off
-
-    CSF_sig = 0;
-    WM_sig = 0;
-    GM_sig = 0;
 end
 
 
@@ -75,6 +86,16 @@ if nargin == 6
     GM_roi = varargin{6};
     load(GM_roi,'ROI') %load
     GM = ROI; %rename
+
+    ROIStruct= RunOnThreeROIs(Bvalues,Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,CSF,WM,GM);
+end
+
+end
+
+
+% Nested functions
+
+function ROIStruct = RunOnThreeROIs(Bvalues,Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,CSF,WM,GM)
     CSF_sig = getAvergeROI(Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,CSF);
     WM_sig = getAvergeROI(Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,WM);
     GM_sig = getAvergeROI(Image_Directory,Images_Per_Slice,Start_Index,nx,ny,Num_Bvalues,datnames,slice,GM);
@@ -128,10 +149,13 @@ if nargin == 6
     hold off
     legend('CSF','','WM','','GM','')
     xlabel('b-value (s/mm^2)',FontSize=25)
+
+    ROIStruct.CSF = CSF_sig;
+    ROIStruct.WM = WM_sig;
+    ROIStruct.GM = GM_sig;
 end
 
 
-end
 
 
 %nested function below

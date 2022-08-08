@@ -64,8 +64,8 @@ classdef imagestack < matlab.apps.AppBase
             % make datacursor usable
             %datacursormode(app.UIFigure, 'on')
             %app.dcm = datacursormode(app.UIFigure);
-            app.color = 'gray';
-            %app.color = 'jet';
+            %app.color = 'gray';
+            app.color = 'jet';
 
             app.MaxValue = max(app.InputImage,[],'all'); %set range across ALL slices
             app.MinValue = 0.0; %set to 0
