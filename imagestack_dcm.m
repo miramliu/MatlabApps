@@ -26,7 +26,7 @@ disp('Displaying imagestack')
 % now use imagestack to show this with a title, if given
 if numel(varargin) ==2
     title = varargin{2};
-    imagestack(threeDarray,title)
+    imagestack(threeDarray,'grey')
 else
     imagestack(threeDarray)
 end

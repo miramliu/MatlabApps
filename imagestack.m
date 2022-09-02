@@ -45,9 +45,12 @@ classdef imagestack < matlab.apps.AppBase
             elseif length(size(varargin{1})) ==3 %if it's three dimensional
                 app.InputImage = varargin{1};
                 name = 'Figure';
+                app.color = 'jet';
                 if size(varargin,2) ==2
                     if strcmp(string(varargin{2}),'permute')
                         app.InputImage = permute(varargin{1},[2 3 1]); %if it is given as [slice,x,y]
+                    elseif strcmp(string(varargin{2}),'grey')
+                        app.color = 'gray';
                     else
                         name = varargin{2};
                     end
@@ -65,7 +68,7 @@ classdef imagestack < matlab.apps.AppBase
             %datacursormode(app.UIFigure, 'on')
             %app.dcm = datacursormode(app.UIFigure);
             %app.color = 'gray';
-            app.color = 'jet';
+            %app.color = 'jet';
 
             app.MaxValue = max(app.InputImage,[],'all'); %set range across ALL slices
             app.MinValue = 0.0; %set to 0
