@@ -45,7 +45,7 @@ classdef View_Coregistration < matlab.apps.AppBase
         downButton                matlab.ui.control.Button
         upButton                  matlab.ui.control.Button
         ShiftLabel                matlab.ui.control.Label
-        UIAxes3   
+        UIAxes3                   matlab.ui.control.UIAxes
         image1
         image2
         colormapname1
@@ -511,7 +511,7 @@ classdef View_Coregistration < matlab.apps.AppBase
             % Create RangeSliderLabel
             app.RangeSliderLabel = uilabel(app.LeftPanel);
             app.RangeSliderLabel.HorizontalAlignment = 'right';
-            app.RangeSliderLabel.Position = [24 187 40 22];
+            app.RangeSliderLabel.Position = [25 187 40 22];
             app.RangeSliderLabel.Text = 'Range';
 
             % Create RangeSlider
