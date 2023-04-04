@@ -85,7 +85,11 @@ classdef View_Coregistration < matlab.apps.AppBase
                 image1path = varargin{1};
                 %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
                 load(image1path, 'images', 'image_names')
-                app.image1 = images{strcmp('qCBF_nSVD',image_names)};
+                try
+                    app.image1 = images{strcmp('qCBF_nSVD',image_names)};
+                catch
+                    app.image1 = images.DD.qCBF_SVD;
+                end
     
                 % read in the spect perfusion
                 image2path = varargin{2};
@@ -401,7 +405,11 @@ classdef View_Coregistration < matlab.apps.AppBase
                 image1path = varargin{1};
                 %dscpath = '/Users/neuroimaging/Desktop/DATA/ASVD/Pt6/pt6_DSC_sorted/Result_MSwcf2/P001GE_M.mat';
                 load(image1path, 'images', 'image_names')
-                app.image1 = images{strcmp('qCBF_nSVD',image_names)};
+                try
+                    app.image1 = images{strcmp('qCBF_nSVD',image_names)};
+                catch
+                    app.image1 = images.DD.qCBF_SVD;
+                end
     
                 % read in the spect perfusion
                 image2path = varargin{2};
@@ -517,7 +525,7 @@ classdef View_Coregistration < matlab.apps.AppBase
             % Create RangeSlider
             app.RangeSlider = uislider(app.LeftPanel);
             app.RangeSlider.Position = [85 196 150 3];
-            app.RangeSlider.Limits = [1,1000];
+            app.RangeSlider.Limits = [1,2000];
             app.RangeSlider.Value = 120;
             app.RangeSlider.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_1, true);
 
@@ -587,7 +595,7 @@ classdef View_Coregistration < matlab.apps.AppBase
                 app.RangeSlider_2.Limits = [0,1];
                 app.RangeSlider_2.Value = .5;
             else
-                app.RangeSlider_2.Limits = [1,1000];
+                app.RangeSlider_2.Limits = [1,2000];
                 app.RangeSlider_2.Value = 120;
             end
             app.RangeSlider_2.ValueChangedFcn = createCallbackFcn(app, @SliderValueChanged_2, true);

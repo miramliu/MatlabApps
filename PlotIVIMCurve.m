@@ -239,7 +239,8 @@ classdef PlotIVIMCurve < matlab.apps.AppBase
                 %display the residual 
                 IVIM = app.Signal/app.Signal(1);
                 CBFfit_ErrCalc = (app.f(x,y))*exp(-app.Bvalues*app.Dstar(x,y))+(1-app.f(x,y))*exp(-app.Bvalues*app.D(x,y)); %to get error calculation of the full bi-exponential fit
-                Residual =  sum(sqrt(abs(IVIM'-CBFfit_ErrCalc)));
+                %Residual =  sum(sqrt(abs(IVIM'-CBFfit_ErrCalc)));
+                Residual =  sum((abs(IVIM'-CBFfit_ErrCalc).^2));
                 text(600,.95,strcat("Residual = ", num2str(Residual,3)),'parent',app.UIAxes2)
                 text(600,.92,strcat("f = ", num2str(app.f(x,y),3)),'parent',app.UIAxes2)
                 text(600,.89,strcat("Dstar = ", num2str(app.Dstar(x,y),2)),'parent',app.UIAxes2)
