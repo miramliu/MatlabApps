@@ -49,7 +49,7 @@ classdef imagestack < matlab.apps.AppBase
                 if size(varargin,2) ==2
                     if strcmp(string(varargin{2}),'permute')
                         app.InputImage = permute(varargin{1},[2 3 1]); %if it is given as [slice,x,y]
-                    elseif strcmp(string(varargin{2}),'grey')
+                    elseif strcmp(string(varargin{2}),'gray')
                         app.color = 'gray';
                     else
                         name = varargin{2};
@@ -167,7 +167,7 @@ classdef imagestack < matlab.apps.AppBase
             end
 
             app.MaxValue = real(max(app.InputImage,[],'all'));
-            app.MinValue = real(min(app.InputImage,[],'all'));
+            app.MinValue = max(real(min(app.InputImage,[],'all')),0); %if min is < 0, set min to 0?
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
