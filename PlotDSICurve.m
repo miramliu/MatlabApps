@@ -38,6 +38,7 @@ classdef PlotDSICurve < matlab.apps.AppBase
         SpectralVolume
         OutputSpectrum
         ADCBasis
+        Resorted_spectralmap
     end
 
     % Callbacks that handle component events
@@ -56,13 +57,14 @@ classdef PlotDSICurve < matlab.apps.AppBase
                 % get variables and images of each variable
                 load(varargin{1}, 'Parameter_Volume', 'Spectral_Volume')
                 app.slice = varargin{2};
-                [Resorted_spectralmap] = Resort_Spectral_DSI_Map(Parameter_Volume,app.slice);
+                %[app.Resorted_spectralmap] = Resort_Spectral_DSI_Map(Parameter_Volume,app.slice);
+                [app.Resorted_spectralmap] = Resort_Spectral_DSI_Map_20240620(Parameter_Volume,app.slice);
 
-                [nx, ny, ~]=size(squeeze(Resorted_spectralmap(1,:,:,:)));
+                [nx, ny, ~]=size(squeeze(app.Resorted_spectralmap(1,:,:,:)));
                 app.fD_maps=zeros(nx, ny, 3);
-                app.fD_maps(:,:,1)=Resorted_spectralmap(app.slice,:,:,1).*Resorted_spectralmap(app.slice,:,:,4)*93;
-                app.fD_maps(:,:,2)=Resorted_spectralmap(app.slice,:,:,2).*Resorted_spectralmap(app.slice,:,:,5)*93;
-                app.fD_maps(:,:,3)=Resorted_spectralmap(app.slice,:,:,3).*Resorted_spectralmap(app.slice,:,:,6)*93;
+                app.fD_maps(:,:,1)=app.Resorted_spectralmap(app.slice,:,:,1).*app.Resorted_spectralmap(app.slice,:,:,4)*93;
+                app.fD_maps(:,:,2)=app.Resorted_spectralmap(app.slice,:,:,2).*app.Resorted_spectralmap(app.slice,:,:,5)*93;
+                app.fD_maps(:,:,3)=app.Resorted_spectralmap(app.slice,:,:,3).*app.Resorted_spectralmap(app.slice,:,:,6)*93;
 
                 
 
@@ -78,7 +80,7 @@ classdef PlotDSICurve < matlab.apps.AppBase
                     elseif strcmpi(varargin{3},'Tissuemap')
                         app.InputImage = squeeze(app.fD_maps(:,:, 3));
                         app.MaxValue = max(app.InputImage,[],'all');
-                    else
+                    elseif strcmpi(varargin{3},'CBFmap')
                         app.InputImage = squeeze(app.fD_maps(:,:, 2));
                         app.MaxValue = max(app.InputImage,[],'all');
                     end
@@ -117,10 +119,11 @@ classdef PlotDSICurve < matlab.apps.AppBase
             app.OutputSpectrum = double(squeeze(app.SpectralVolume(round(nx/2),round(ny/2),:)));
             semilogx((1./app.ADCBasis)*1000, app.OutputSpectrum,'parent',app.UIAxes2)
             %app.Signal= double(app.ImageStack(1:app.Num_Bvalues,round(nx/2),round(ny/2)));
-            sz = 70;
+            %sz = 70;
             %scatter(app.Bvalues,app.Signal/app.Signal(1),sz,'parent',app.UIAxes2,markerfacecolor='black') %normalized to b0 (like IVIM fit algorithm)
             title('Diffusion Spectrum','parent',app.UIAxes2)
             hold (app.UIAxes2, 'on');
+           
             
             xline(50,'parent',app.UIAxes2)%,markerfacecolor='black')
             hold (app.UIAxes2, 'on');
@@ -167,7 +170,17 @@ classdef PlotDSICurve < matlab.apps.AppBase
             titlename=strcat("Diffusion Spectrum: [" ,num2str(x), '-',num2str(y), "]");
             title(titlename,'parent',app.UIAxes2)
             hold (app.UIAxes2, 'on');
+
+            figtext = strcat("f = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,1)),3) , ", D = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,4)),3));
+            text(2,.18,figtext,'parent',app.UIAxes2)
+
+            figtext = strcat("f = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,2)),3) , ", D = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,5)),3));
+            text(2,.15,figtext,'parent',app.UIAxes2)
+
+            figtext = strcat("f = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,3)),3) , ", D = " , num2str(squeeze(app.Resorted_spectralmap(app.slice,x,y,6)),3));
+            text(2,.12,figtext,'parent',app.UIAxes2)
             
+
             hold (app.UIAxes2, 'off');
         end
         
@@ -257,7 +270,7 @@ classdef PlotDSICurve < matlab.apps.AppBase
             % Create UIAxes2 (Data Fit plot)
             app.UIAxes2 = uiaxes(app.RightPanel);
             %title(app.UIAxes2, 'Title')
-            xlabel(app.UIAxes2, 'b-value (s/mm^2)',FontSize=25)
+            xlabel(app.UIAxes2, 'Diffusion Coefficient (mm^2/s)',FontSize=16)
             %ylabel(app.UIAxes2, 'Y')
             %zlabel(app.UIAxes2, 'Z')
             app.UIAxes2.YLim = [0 0.2];
