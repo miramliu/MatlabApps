@@ -51,7 +51,11 @@ classdef PlotDSICurve < matlab.apps.AppBase
                 error('No input image')
             elseif length(varargin)>=2
 
+                %try 
                 addpath /Users/miramliu/Desktop/Work/PhD/MR-Code/Applied_NNLS_neural/Neural_ContinuousSpectra
+                %catch
+                addpath /Users/miraliu/Desktop/PostDocCode/Neural_ContinuousSpectra
+                %end
                 app.FitVariableLength = 2;
                 %this would be for 1 matlab file (SCan Name_2step.mat) which has f, Dstar, and D, 1 folder, and 1 slice
                 % get variables and images of each variable
@@ -102,6 +106,9 @@ classdef PlotDSICurve < matlab.apps.AppBase
                     elseif strcmpi(varargin{3},'CBFmap')
                         app.InputImage = squeeze(app.fD_maps(:,:, 2));
                         app.MaxValue = max(app.InputImage,[],'all');
+                    %elseif strcmpi(varargin{3},'fmap')
+                        %app.InputImage = squeeze(app.Resorted_spectralmap(app.slice,:,:,3));
+                        %app.MaxValue = .5;
                     end
                 end
 
