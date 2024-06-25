@@ -55,9 +55,30 @@ classdef PlotDSICurve < matlab.apps.AppBase
                 app.FitVariableLength = 2;
                 %this would be for 1 matlab file (SCan Name_2step.mat) which has f, Dstar, and D, 1 folder, and 1 slice
                 % get variables and images of each variable
-                load(varargin{1}, 'Parameter_Volume', 'Spectral_Volume')
-                app.slice = varargin{2};
-                %[app.Resorted_spectralmap] = Resort_Spectral_DSI_Map(Parameter_Volume,app.slice);
+                load(varargin{1}, 'IVIM_DSI')
+                Parameter_Volume = IVIM_DSI.Parameter_Volume;
+                Spectral_Volume = IVIM_DSI.Spectral_Volume;
+                if ndims(Parameter_Volume)==4
+                    app.slice = varargin{2};
+                    
+                elseif ndims(Parameter_Volume)==3 % it is only one slice so... 
+                    [nx,ny,nz] = size(Parameter_Volume);
+                    test = zeros(1,nx,ny,nz);
+                    test(1,:,:,:) = Parameter_Volume; %make it 3D
+                    Parameter_Volume = test;
+                    app.slice = 1;
+
+
+                    [nx,ny,nz] = size(Spectral_Volume);
+                    test = zeros(1,nx,ny,nz);
+                    test(1,:,:,:) = Spectral_Volume; %make it 3D
+                    Spectral_Volume = test;
+                    app.slice = 1;
+                end
+
+                app.SpectralVolume = squeeze(Spectral_Volume(app.slice,:,:,:));
+
+                [app.Resorted_spectralmap] = Resort_Spectral_DSI_Map(Parameter_Volume,app.slice);
                 [app.Resorted_spectralmap] = Resort_Spectral_DSI_Map_20240620(Parameter_Volume,app.slice);
 
                 [nx, ny, ~]=size(squeeze(app.Resorted_spectralmap(1,:,:,:)));
@@ -65,8 +86,6 @@ classdef PlotDSICurve < matlab.apps.AppBase
                 app.fD_maps(:,:,1)=app.Resorted_spectralmap(app.slice,:,:,1).*app.Resorted_spectralmap(app.slice,:,:,4)*93;
                 app.fD_maps(:,:,2)=app.Resorted_spectralmap(app.slice,:,:,2).*app.Resorted_spectralmap(app.slice,:,:,5)*93;
                 app.fD_maps(:,:,3)=app.Resorted_spectralmap(app.slice,:,:,3).*app.Resorted_spectralmap(app.slice,:,:,6)*93;
-
-                
 
                 %get IVIM qCBF image of that slice of interest
                 %app.InputImage = imresize(squeeze(app.fD_maps(:,:, 2)),[176 176],'bicubic'); %quantitative scale factor with IVIM, to get qCBF image
@@ -91,7 +110,7 @@ classdef PlotDSICurve < matlab.apps.AppBase
                 %app.Bvalues  = [0 111 222 333 444 556 667 778 889 1000];
                 %app.FitBvalues = linspace(0,1000); %b values for smooth fit of f and D and Dstar, 100 points from 0 to 1000 evenly spaces
 
-                app.SpectralVolume = squeeze(Spectral_Volume(app.slice,:,:,:));
+                
 
                 %app.MaxSpecValue = max(app.Spectral_Volume,[],'all');
                 
