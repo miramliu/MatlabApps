@@ -186,7 +186,11 @@ classdef imagestack < matlab.apps.AppBase
             app.Slider = uislider(app.UIFigure);
             app.Slider.Orientation = 'vertical';
             app.Slider.Position = [18 57 3 446];
-            app.Slider.Limits = [app.MinValue app.MaxValue]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
+            if app.MaxValue > app.MinValue
+                app.Slider.Limits = [app.MinValue app.MaxValue]; %the slider limits set here, arbitrarily to 1/4 of the maximum value just because of noise spikes dominating
+            else
+                app.Slider.Limits = [0 1];
+            end
             app.Slider.Value= app.MaxValue/2;%250; %just standard max for perfusion MRI
             app.Slider.ValueChangedFcn = createCallbackFcn(app, @SliderColorValueChanged, true);
 
